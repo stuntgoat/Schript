@@ -1,0 +1,6 @@
+Schript, pronounced 'skript', is a Scheme to JavaScript translator. 
+
+PRE ALPHA
+
+Currently, it prints Scheme mathematical equations as an abstract syntax tree.
+
