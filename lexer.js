@@ -28,7 +28,6 @@ function rpn(equation) {
     var removable = /[\s()]+/;
     var eq = equation.split(removable);
     stack = [];
-    print(eq);
     for (var r in eq) { 
 	if (eq[r] !== '') {
 	    stack.unshift(eq[r]);
@@ -40,7 +39,6 @@ function rpn(equation) {
 function is_operator(item) {
     var found = false;
     for (var o in operators) {
-	print(operators[o]);
 	if (item === operators[o]) {
 	    found = true;	    
 	}
@@ -65,5 +63,7 @@ function ast(rpn_array) {
     return stack;
 };
 
-
-print(JSON.stringify(ast(rpn(expression1))[0]));
+print('input:');
+print(expression2);
+print('output');
+print(JSON.stringify(ast(rpn(expression2))[0]));
