@@ -28,7 +28,6 @@ function rpn(equation) {
     var removable = /[\s()]+/;
     var eq = equation.split(removable);
     stack = [];
-    print(eq);
     for (var r in eq) { 
 	if (eq[r] !== '') {
 	    stack.unshift(eq[r]);
@@ -38,31 +37,33 @@ function rpn(equation) {
 };
 
 function is_operator(item) {
-    for (var o in operator) {
-	if (item === operator[o]) {
-	    return true;
-	} else {
-	    return false;
+    var found = false;
+    for (var o in operators) {
+	if (item === operators[o]) {
+	    found = true;	    
 	}
     }
+    return found;
 }
 
 function ast(rpn_array) {
     //return an abstract syntax tree    
     var stack = [];
     for (var i in rpn_array) {
-	var item = rpn_array[i];
-	if (is_operator(item)) {
+	if (is_operator(rpn_array[i])) {
 	    // make a node with the last 2 elements in the stack
 	    left = stack.pop();
 	    right = stack.pop();
-	    stack.push(make_leaf(left, right, item));
+	    stack.push(make_node(left, right, rpn_array[i]));
 	} else {
 	    // make a leaf and place on the stack
-	    stack.push(make_leaf(item));
+	    stack.push(make_leaf(rpn_array[i]));
 	}
     }
+    return stack;
 };
 
-print(rpn(expression1));
-print(ast(rpn(expression1)));
+print('input:');
+print(expression2);
+print('output');
+print(JSON.stringify(ast(rpn(expression2))[0]));
