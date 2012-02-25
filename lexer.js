@@ -4,6 +4,7 @@
 var operators = ['+', '-', '*', '/'];
 
 function is_operator(item) {
+    // returns true if 
     var found = false;
     for (var o in operators) {
 	if (item === operators[o]) {
@@ -33,8 +34,6 @@ function split_elements(chunk) {
 	    }
 	    stack.push(chunk[i]);
 	    tmp_stack = [];
-	} else if (is_operator(chunk[i])) {
-	    tmp_stack.push(chunk[i]);
 	} else { 
 	    tmp_stack.push(chunk[i]);
 	}
