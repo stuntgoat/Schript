@@ -41,16 +41,6 @@ function is_lparen(item) {
     }
 }
 
-// function contains_lparen(item) {
-//     // if item contains a left paren, return an array with the
-//     if (item.length > 1) {
-// 	for (var e in item) {
-// 	    if (is_lparen(item[e])) {
-		
-// }
-
-// }
-
 function is_rparen(item) {
     if (item === ')') {
 	return true;
@@ -75,50 +65,6 @@ function add_to_stack(stack, item) {
     return stack;
 }
 
-// function ast(equation) {
-//     //return an abstract syntax tree from array named 'equation'
-//     var stack = [];
-//     for (var i in equation) {
-// 	if () {
-
-// 	}
-// 	if (is_lparen(equation[i])) {
-// 	    // make a node with the last 2 elements in the stack
-// 	    left = stack.pop();
-// 	    right = stack.pop();
-// 	    stack.push(make_node(left, right, equation[i]));
-// 	} else {
-// 	    // make a leaf and place on the stack
-// 	    stack.push(make_leaf(equation[i]));
-// 	}
-//     }
-//     return stack;
-// };
-
-// print('input:');
-// // print(expression111);
-// print('output');
-// print(split_whitespace(expression111));
-
-function split_elements(equation) {
-    // given an sexpression, split at whitespace, return an array containing all
-    // individual elements; each token is independent within the array.
-
-    stack = [];
-    for (var e in equation) {
-	if (equation[e].length > 1) {
-	    // The only options for equation[e] is value/paren/operator, paren/paren/paren. . ., value, value/paren, 
-	    
-	    // if first element is a 
-
-	} else {
-	    stack.push(equation[e]);
-	}
-
-    }
-}
-
-
 function tokenize(equation) {
     var stack = [];
     var split_eq = split_whitespace(equation);
@@ -127,15 +73,15 @@ function tokenize(equation) {
     }
     return stack;
 }
-
-function split_first_lparen(chunk) {
-    
+                                                                                
+function split_elements(chunk) {
+    // split parts of a Scheme equation, that has been split at whitespace, to
+    // paren, functions, and function arguments
     var stack = [];
     var tmp_stack = [];
     var paren = /[()]/;
     for (var i in chunk) {
 	if (paren.test(chunk[i])) {
-//	if (chunk[i] === '(') { 
 	    if (tmp_stack.length) {
 		stack.push(tmp_stack.join(''));
 	    }
@@ -162,3 +108,38 @@ print(JSON.stringify(tokenize(sexp2)));
 
 
 
+
+// function ast(equation) {
+//     //return an abstract syntax tree from array named 'equation'
+//     var stack = [];
+//     for (var i in equation) {
+// 	if () {
+
+// 	}
+// 	if (is_lparen(equation[i])) {
+// 	    // make a node with the last 2 elements in the stack
+// 	    left = stack.pop();
+// 	    right = stack.pop();
+// 	    stack.push(make_node(left, right, equation[i]));
+// 	} else {
+// 	    // make a leaf and place on the stack
+// 	    stack.push(make_leaf(equation[i]));
+// 	}
+//     }
+//     return stack;
+// };
+
+// print('input:');
+// // print(expression111);
+// print('output');
+// print(split_whitespace(expression111));
+
+// function contains_lparen(item) {
+//     // if item contains a left paren, return an array with the
+//     if (item.length > 1) {
+// 	for (var e in item) {
+// 	    if (is_lparen(item[e])) {
+		
+// }
+
+// }
