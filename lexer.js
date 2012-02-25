@@ -1,18 +1,6 @@
 // lexer.js
 // functions to tokenize a Scheme expression
 
-var operators = ['+', '-', '*', '/'];
-
-function is_operator(item) {
-    // returns true if 
-    var found = false;
-    for (var o in operators) {
-	if (item === operators[o]) {
-	    found = true;	    
-	}
-    }
-    return found;
-}
 
 function split_whitespace(equation) {
 // split the s-expression at the whitespace and put each element in to an array
