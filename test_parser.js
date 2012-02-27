@@ -1,18 +1,16 @@
 // 
 
-var parser = require('./parser.js');
 var lexer = require('./lexer.js');
+var parser = require('./parser.js');
 
-var expression111 = "(- 2(*(- 4 6 -6)-3 7 56)99)";
+var expression = "(- 2(*(- 4 6 -6)-3 7 56)99)";
 
-var tokenized = lexer.tokenize(expression111);
-
+var tokenized = lexer.tokenize(expression);
 var parsed = parser.parse(tokenized);
 
-var st = parser.ast(parsed);
-
-console.log("given:");
-console.log(parsed);
+console.log("lexer.tokenized given Scheme expression:\n%s", expression);
+console.log("returns:\n%s", JSON.stringify(tokenized));
+console.log("parser.parse given tokenized:\n%s", JSON.stringify(tokenized));
 console.log("returns:");
-console.log(JSON.stringify(st));
+console.log(JSON.stringify(parsed));
 
