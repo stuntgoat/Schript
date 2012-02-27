@@ -1,6 +1,6 @@
-// ast.js
+// parser.js
 // Functions to create an abstract syntax tree from an array of Scheme tokens.
-// exports: parse, ast
+// exports: parse
 
 
 function is_lparen(item) {
