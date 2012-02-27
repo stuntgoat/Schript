@@ -20,7 +20,7 @@ function translate(parsed) {
 	}	
     }
     
-    return '(' + stack.join(func) + ')';
+    return '(' + operators.operators[func](stack) + ')';
 }
 
 function pre_translate(expression) {
