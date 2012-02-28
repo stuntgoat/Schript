@@ -2,22 +2,7 @@
 // Functions to create an abstract syntax tree from an array of Scheme tokens.
 // exports: parse
 
-
-function is_lparen(item) {
-    if (item === '(') {
-	return true;
-    } else {
-	return false;
-    }
-}
-
-function is_rparen(item) {
-    if (item === ')') {
-	return true;
-    } else {
-	return false;
-    }
-}
+var predicates = require('./predicates.js');
 
 function pre_parse(tokenized) {
     // Accepts: an array of Scheme tokens. Returns: a JavaScript array ofScheme
@@ -26,7 +11,7 @@ function pre_parse(tokenized) {
     var depth = 0;
     var stack = {};
     for (var i in tokenized) {
-	if (is_lparen(tokenized[i])) {
+	if (predicates.is_lparen(tokenized[i])) {
 	    depth += 1;
 	    stack[depth] = [];
 	} else if (is_rparen(tokenized[i])) {
