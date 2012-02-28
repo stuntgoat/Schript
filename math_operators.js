@@ -2,18 +2,6 @@
 // exports: operators, an object with math operators in Scheme as keys and JavaScript 
 // functions that print JavaScript code based on arguments.
 
-// function operate(operator, operands) {
-//     var output = '';
-//     for (var i in operands) {
-// 	if (i === (operands.length -1) {
-// 	    output += operands[i];	    
-// 	} else {
-// 	    output += operands[i] + operator;
-// 	}
-//     }
-//     return output;
-// }
-
 function added(operands) {
     return operands.join("+");
 }
@@ -31,11 +19,11 @@ function divided(operands) {
 }
 
 function square_root(operand) {
-    return 'Math.sqrt(' + ')';
+    return 'Math.sqrt(' + operand + ')';
 }
 
 function exponent(operands) {
-    return 'Math.power(' + operands[0] + ', ' + operands[1] + ')';
+    return 'Math.pow(' + operands[0] + ',' + operands[1] + ')';
 }
 
 function remainder(operands) {
@@ -52,6 +40,7 @@ function modulo(operands) {
     }
 }
 
+
 var operators = {
     '+': added,
     '-': subtracted,
@@ -64,26 +53,3 @@ var operators = {
 };
 
 exports.operators = operators;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
