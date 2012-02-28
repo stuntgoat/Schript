@@ -1,39 +1,15 @@
+// procedures.js
+// Abstract the lookup table away from translate.js. Procedures
+// from muliple modules are imported here and exported as a single object.
+
+var tools = require('./tools.js');
+
+// each of the following imports contains an object with one or more
+// functions defined. procedures.js
+var operators = require('./math_operators.js');n
+var lambda = require('./lambda.js');
 
 
 
-function evaluate_procedure(args, procedure) {
-    // evaluate a prodcedure    
-    stack = [];
-    
+procedures = tools.merge_objects([operators.operators, lambda.lambda]);
 
-
-}
-
-function print_lambda(args, body) {
-    // translate a lambda expression
-    var stack = [];
-    var tmp_stack = [];
-    if (!args.length) {
-	stack.push('() ');
-    } else if (args.length === 1) {
-	stack.push('(' + args[0] + ') ');
-    } else {
-	stack.push('(')
-	for (var i in args) {
-	    if (i === args.length -1){
-		tmp_stack.push(args[i]);
-	    } else {
-		tmp_stack.push(args[i] + ',');
-	    }
-	}
-	stack.push(')');
-    }
-    return stack.join('') + evaluate_procedure(args, body);
-}
-
-procedures = {
-    lambda: print_lambda
-};
-
-
-exports.procedures = procedures;
