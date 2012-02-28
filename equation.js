@@ -26,6 +26,7 @@ function ast_to_js(parsed) {
 	    stack.push(args[i]);
 	}	
     }
+    
     return '(' + operators.operators[func](stack) + ')';
 }
 
