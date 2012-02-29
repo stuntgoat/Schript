@@ -7,11 +7,7 @@ var predicates = require('./predicates.js');
 var lexer = require('./lexer.js');
 var parser = require('./parser.js');
 
-
 var procedures = require('./procedures.js');
-
-
-
 
 function ast_to_js(parsed) {
     // translate a JavaScript abstract syntax tree to JavaScript code as text
@@ -25,8 +21,8 @@ function ast_to_js(parsed) {
 	    stack.push(args[i]);
 	}	
     }
-    if  (operators.operators[func]) {
-	return '(' + operators.operators[func](stack) + ')';
+    if  (procedures.procedures[func]) {
+	return '(' + procedures.procedures[func](stack) + ')';
     }
     return func + ' not supported';
 }
@@ -41,6 +37,8 @@ function translate(equation) {
     var parsed = pre_translate(equation);
     return ast_to_js(parsed);
 }
-
-exports.pre_translate = pre_translate;
 exports.translate = translate;
+
+// debug only
+exports.pre_translate = pre_translate;
+

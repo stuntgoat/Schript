@@ -4,13 +4,15 @@
 
 var predicates = require('./predicates.js');
 
+
+
 function pre_parse(tokenized) {
     // Accepts: an array of Scheme tokens. Returns: a JavaScript array ofScheme
     //  functions and arguments; arguments that are other s-expressions will be
     // nested JavaScript arrays.
     var depth = 0;
     var stack = {};
-    console.log(tokenized);
+//    console.log(tokenized);
     for (var i in tokenized) {
 //	console.log("tokenized[i]: ", tokenized[i]);
 	if (predicates.is_lparen(tokenized[i])) {
@@ -26,7 +28,7 @@ function pre_parse(tokenized) {
 	    stack[depth].push(tokenized[i]);
 	}
     }
-    console.log("Stack Depth:", stack[depth]);
+//    console.log("Stack Depth:", stack[depth]);
     return stack[depth];
 }
 

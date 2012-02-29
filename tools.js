@@ -11,10 +11,16 @@ function merge_objects(objs) {
     for (i in objs) {
 	for (o in objs[i]) {
 	    if (objs[i].hasOwnProperty(o)) {
-		obj_stack[o] = objs[o];
+		obj_stack[o] = objs[i][o];
 	    }	
 	}
     }
+
     return obj_stack;
 }
-exports.tools = merge_objects;
+
+tools = {
+    merge_objects: merge_objects
+}
+
+exports.tools = tools;

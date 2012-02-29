@@ -30,6 +30,7 @@ function remainder(operands) {
     // returns JavaScript modulo but retains the sign of the dividend
     return operands[0] + '%' + operands[1];
 }
+
 function modulo(operands) {
     // returns JavaScript modulo but retains the sign of the divisor
     var divisor_sign = (operands[1] < 1) ? 0 : 1;
@@ -39,7 +40,6 @@ function modulo(operands) {
 	return '(-1 * Math.abs(' + operands[0] + '%' + operands[1] + '))';
     }
 }
-
 
 var operators = {
     '+': added,
