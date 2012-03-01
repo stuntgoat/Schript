@@ -6,24 +6,21 @@
 var tools = require('./tools.js');
 var defined_procedures = require('./procedures.js');
 
-function lambda(obj) {
-    // pass in the entire lambda object, that is, obj['func'] == 'lambda'
+function lambda(args) {
+    // args is args in the following, 
     // example: {"func":"lambda","args":[{"func":"x","args":["y","z"]},
     // {"func":"*","args":["x","y","z"]}]};
-    // in this case, args will be a list; the first object in the list will be an 
-    // object with the func being the first actual argument to the lambda, the
-    //  args list if not
-    // empty will be the list of following arguments. The second function in 
-    // the list will be 
-    // a procedure with an argument list.
-    var procedures = tools.merge_objects(defined_procedures.procedures, {'lambda': lambda});
-    console.log("in lambda:", procedures);
-    if (obj['func'] != 'lambda') {
-	return 'Error: ' + obj + ' is not a lambda';
-    }
+    // in this case, args will be a list; the first object in the list will be 
+    // object with both func and args being all arguments to the lambda; 
+    // tools.merge_lambda_args(obj) concatenates to Array. The second arg is the 
+    // lambda procedure.
+    console.log(defined_procedures.procedures);
+    console.log(defined_procedures.procedures.procedures);
+    var procedures = tools.merge_objects([defined_procedures.procedures.operators, {'lambda': lambda}]);
+
     // merge lambda args from first object in the args list, which is an object
-    var args = tools.merge_lambda_args(obj['args'][0]);
-    var expression = obj['args'][1];
+    var args = tools.merge_lambda_args(args[0]);
+    var expression = args[1];
     var stack = [];
     var tmp_stack = [];
 

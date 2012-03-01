@@ -10,25 +10,15 @@ var parser = require('./parser.js');
 var defined_procedures = require('./procedures.js');
 
 function lambda(obj) {
-    // pass in the entire lambda object, that is, obj['func'] == 'lambda'
-    // example: {"func":"lambda","args":[{"func":"x","args":["y","z"]},
-    // {"func":"*","args":["x","y","z"]}]};
-    // in this case, args will be a list; the first object in the list will be an 
-    // object with the func being the first actual argument to the lambda, the
-    //  args list if not
-    // empty will be the list of following arguments. The second function in 
-    // the list will be 
-    // a procedure with an argument list.
-
-    console.log("in lambda:", procedures);
-    if (obj['func'] != 'lambda') {
-	return 'Error: ' + obj + ' is not a lambda';
-    }
-    // merge lambda args from first object in the args list, which is an object
-    var args = tools.merge_lambda_args(obj['args'][0]);
-    var expression = obj['args'][1];
+    // args is args in the following, 
+    // example: [{"func":"x","args":["y","z"]}, {"func":"*","args":["x","y","z"]}]};
+    // in this case, args will be a list; the first object in the list will be 
+    // object with both func and args being all arguments to the lambda; 
+    // tools.merge_lambda_args(obj) concatenates to Array. The second arg is the 
+    // lambda procedure.
+    var args = tools.merge_lambda_args(obj[0]);
+    var expression = obj[1];
     var stack = [];
-    var tmp_stack = [];
 
     stack.push('function');
     if (args.length === 0) {
@@ -46,41 +36,28 @@ function lambda(obj) {
 	}
 	stack.push(')');
     }
+
+    var procedures = tools.merge_objects([defined_procedures.procedures.operators, {'lambda': lambda}]);
+
     // the stack joined and the result of procedures
-    return stack.join('') + '{return ' +  procedures.procedures[expression['func']](expression['args']) + '};';
+    return stack.join('') + '{return ' +  procedures[expression['func']](expression['args']) + '};';
 }    
 exports.lambda = {'lambda': lambda};
-
-
 var procedures = tools.merge_objects([defined_procedures.procedures.operators, {'lambda': lambda}]);
-console.log('defined procedures', defined_procedures.procedures.operators);
-console.log('procedures', procedures);
+
 function ast_to_js(parsed) {
     // translate a JavaScript abstract syntax tree to JavaScript code as text
-    // 
     var args = parsed['args'];
     var func = parsed['func'];
-//    console.log(func);
     var stack = [];
-    for (var i in args) {
-	console.log(args[i]);
-	if (predicates.is_object(args[i])) { 
-	    stack.push(ast_to_js(args[i]));
-	} else {
-	    stack.push(args[i]);
-	}	
-    }
 
     if  (procedures[func]) {
-	// inserting enclosing paren may not work for other procedure-to-function 
-	// translations- works for math procedures.
-	console.log(func);
-	console.log(stack);
-	return '(' + procedures[func](stack) + ')';
+	return procedures[func](args);
+    } else {
+	return func + ' not supported';	
     }
-
-    return func + ' not supported';
 }
+exports.ast_to_js = ast_to_js;
 
 function pre_translate(expression) {
     var tokenized = lexer.tokenize(expression);
