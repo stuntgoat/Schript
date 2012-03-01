@@ -63,10 +63,7 @@ function lambda(obj) {
     } else {
 	stack.push('(');
 	for (var i in args) {
-	    console.log(args.length);
-	    console.log(i);
 	    if (i == args.length - 1) {
-		console.log('holey shit');
 		stack.push(args[i]);
 	    } else {
 		stack.push(args[i] + ',');
