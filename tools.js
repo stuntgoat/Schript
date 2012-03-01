@@ -9,13 +9,15 @@ function merge_objects(objs) {
     // next objects in the Array.
     var obj_stack = {};
     for (i in objs) {
+	
 	for (o in objs[i]) {
 	    if (objs[i].hasOwnProperty(o)) {
+		
 		obj_stack[o] = objs[i][o];
 	    }	
 	}
     }
-
+    
     return obj_stack;
 }
 exports.merge_objects = merge_objects;

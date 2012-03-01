@@ -7,9 +7,8 @@ var tools = require('./tools.js');
 // each of the following imports contains an object with one or more
 // functions defined. procedures.js
 var operators = require('./math_operators.js');
-var lambda = require('./lambda.js');
+//var lambda = require('./lambda.js');
 
-procedures = tools.tools.merge_objects([operators.operators, lambda.lambda]);
+//procedures = tools.tools.merge_objects([operators.operators, lambda.lambda]);
 
-
-exports.procedures = procedures;
+exports.procedures = operators;
