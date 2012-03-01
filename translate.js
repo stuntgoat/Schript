@@ -22,6 +22,8 @@ function ast_to_js(parsed) {
 	}	
     }
     if  (procedures.procedures[func]) {
+	// inserting enclosing paren may not work for other procedure-to-function 
+	// translations- works for math procedures.
 	return '(' + procedures.procedures[func](stack) + ')';
     }
     return func + ' not supported';

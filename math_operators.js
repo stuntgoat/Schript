@@ -2,6 +2,10 @@
 // exports: operators, an object with math operators in Scheme as keys and JavaScript 
 // functions that print JavaScript code based on arguments.
 
+// The pattern for these procedures is to use the object['func'] to find
+// the key in a lookup table that references these procedures and passes the 
+// object['args'] value(s) to these functions.
+
 function added(operands) {
     return operands.join("+");
 }
