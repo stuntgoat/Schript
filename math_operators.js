@@ -10,7 +10,6 @@ var translate = require('./translate.js');
 
 function added(args) {
     var stack = [];
-    
     for (var i in args) {
     	console.log(args[i]);
     	if (predicates.is_object(args[i])) { 
@@ -22,8 +21,17 @@ function added(args) {
     return '(' + stack.join("+") + ')';
 }
 
-function subtracted(operands) {
-    return operands.join("-");
+function subtracted(args) {
+    var stack = [];
+    for (var i in args) {
+    	console.log(args[i]);
+    	if (predicates.is_object(args[i])) { 
+    	    stack.push(translate.ast_to_js(args[i]));
+    	} else {
+    	    stack.push(args[i]);
+    	}	
+    }
+    return '(' + stack.join("-") + ')';
 }
 
 function multiplied(args) {
@@ -40,15 +48,23 @@ function multiplied(args) {
     return '(' + stack.join("*") + ')';
 }
 
-function divided(operands) {
-    return operands.join("/");
+function divided(args) {
+    var stack = [];
+    
+    for (var i in args) {
+    	if (predicates.is_object(args[i])) { 
+    	    stack.push(translate.ast_to_js(args[i]));
+    	} else {
+    	    stack.push(args[i]);
+    	}	
+    }
+    return '(' + stack.join("/") + ')';
 }
 
 function square_root(arg) {
     // will only ever be passed a single object.
     var stack = [];
     for (var i in arg) {
-    	console.log(arg[i]);
     	if (predicates.is_object(arg[i])) { 
     	    stack.push(translate.ast_to_js(arg[i]));
     	} else {
@@ -58,26 +74,65 @@ function square_root(arg) {
     return 'Math.sqrt(' + stack.join(' ') + ')';
 }
 
-function exponent(operands) {
-    return 'Math.pow(' + operands[0] + ',' + operands[1] + ')';
+function exponent(args) {
+    var stack = [];
+    for (var i in args) {
+    	if (predicates.is_object(args[i])) { 
+    	    stack.push(translate.ast_to_js(args[i]));
+    	} else {
+    	    stack.push(args[i]);
+    	}	
+    }
+    return 'Math.pow(' + stack.join(',') + ')';
 }
 
-function remainder(operands) {
+function remainder(args) {
+    var stack = [];
+    for (var i in args) {
+    	if (predicates.is_object(args[i])) { 
+    	    stack.push(translate.ast_to_js(args[i]));
+    	} else {
+    	    stack.push(args[i]);
+    	}	
+    }
+    return '(' + stack.join('%') + ')';
     // returns JavaScript modulo but retains the sign of the dividend
-    return operands[0] + '%' + operands[1];
 }
 
 function modulo(operands) {
     // returns JavaScript modulo but retains the sign of the divisor
-    var divisor_sign = (operands[1] < 1) ? 0 : 1;
-    if (divisor_sign) {
-	return 'Math.abs(' + operands[0] + '%' + operands[1] + ')';
+    // OLD:    var divisor_sign = (operands[1] < 1) ? 0 : 1;
+    var dividend_stack = [];
+    var divisor_stack = [];
+
+    var dividend = operands[0];
+    var divisor = operands[1];
+
+    var dividend_evaluated = null;    
+    var divisor_evaluated = null;    
+
+    if (predicates.is_object(dividend)) {
+	dividend_stack.push(translate.ast_to_js(dividend));
     } else {
-	return '(-1 * Math.abs(' + operands[0] + '%' + operands[1] + '))';
+	dividend_stack.push(dividend);
+    }
+    if (predicates.is_object(divisor)) {
+	divisor_stack.push(translate.ast_to_js(divisor));
+    } else {
+	divisor_stack.push(divisor);
+    }
+    divisor_evaluated = '(' + divisor_stack.join('') + ')';
+    dividend_evaluated = '(' + divisor_stack.join('') + ')';
+    
+    // need to use eval
+    if (parseFloat(divisor_evaluated) > 0) {
+	return 'Math.abs(' + dividend_evaluated + '%' + divisor_evaluated + ')';
+    } else {
+	return '(-1 * Math.abs(' + dividend_evaluated + '%' + divisor_evaluated + '))';
     }
 }
 
-var operators = {
+var math = {
     '+': added,
     '-': subtracted,
     '*': multiplied,
@@ -88,4 +143,4 @@ var operators = {
     'modulo': modulo
 };
 
-exports.operators = operators;
+exports.math = math;
