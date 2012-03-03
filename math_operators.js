@@ -11,7 +11,7 @@ var translate = require('./translate.js');
 function added(args) {
     var stack = [];
     for (var i in args) {
-    	console.log(args[i]);
+
     	if (predicates.is_object(args[i])) { 
     	    stack.push(translate.ast_to_js(args[i]));
     	} else {
@@ -24,7 +24,7 @@ function added(args) {
 function subtracted(args) {
     var stack = [];
     for (var i in args) {
-    	console.log(args[i]);
+
     	if (predicates.is_object(args[i])) { 
     	    stack.push(translate.ast_to_js(args[i]));
     	} else {
@@ -38,7 +38,7 @@ function multiplied(args) {
     var stack = [];
     
     for (var i in args) {
-    	console.log(args[i]);
+
     	if (predicates.is_object(args[i])) { 
     	    stack.push(translate.ast_to_js(args[i]));
     	} else {
