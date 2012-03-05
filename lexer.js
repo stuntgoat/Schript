@@ -1,7 +1,6 @@
 // lexer.js
 // functions to tokenize a Scheme expression
 
-
 function split_whitespace(equation) {
 // split the s-expression at the whitespace and put each element in to an array
     var removable = /[\s]+/;

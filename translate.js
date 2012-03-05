@@ -9,15 +9,30 @@ var parser = require('./parser.js');
 
 var math = require('./math_operators.js');
 var lambda = require('./lambda.js');
-var procedures = tools.merge_objects([math.math, lambda.lambda]);
+var procedures = tools.merge_objects([math.math, {'lambda':lambda.zero_passed}]); // other objects may be passed to 
+// merge objects in the future; lambda was passed in before it began it's metamorphosis into a special form
+
 
 function ast_to_js(parsed) {
     // translate a JavaScript abstract syntax tree to JavaScript code as text
     var args = parsed['args'];
     var func = parsed['func'];
     var stack = [];
-    if  (procedures[func]) {
-	return procedures[func](args);
+
+    if (func[0] === "lambda") { // lambda being called with passed in values
+    	console.log("func[0] in translate.js is 'lambda'");
+    	return lambda.lambda.lambda(func[1], func[2], args); // call lambda with the argument list, expression list and the passed in arguments
+    } else if (procedures[func]) {
+    	return procedures[func](args);
+
+    // if  (procedures[func]) {
+    // 	return procedures[func](args);
+
+    // } else if (func[0] === "lambda") { // lambda being called with passed in values
+    // 	console.log("func[0] in translate.js is 'lambda'");
+    // 	return lambda.lambda.lambda(func[1], func[2], args); // call lambda with the argument list, expression list and the passed in arguments
+
+
     } else {
 	return func + ' not supported';	
     }

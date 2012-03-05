@@ -4,10 +4,8 @@
 
 var predicates = require('./predicates.js');
 
-
-
 function pre_parse(tokenized) {
-    // Accepts: an array of Scheme tokens. Returns: a JavaScript array ofScheme
+    // Accepts: an array of Scheme tokens. Returns: a JavaScript array of Scheme
     //  functions and arguments; arguments that are other s-expressions will be
     // nested JavaScript arrays.
     var depth = 0;
@@ -53,6 +51,7 @@ function ast(parsed) {
     }
     return stack;
 }
+exports.ast = ast;
 
 function parse(tokenized) {
     // export parse    
@@ -60,6 +59,5 @@ function parse(tokenized) {
     var parsed = pre_parse(tokenized);
     return ast(parsed);
 }
-
 exports.parse = parse;
 
