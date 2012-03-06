@@ -20,19 +20,10 @@ function ast_to_js(parsed) {
     var stack = [];
 
     if (func[0] === "lambda") { // lambda being called with passed in values
-    	console.log("func[0] in translate.js is 'lambda'");
-    	return lambda.lambda.lambda(func[1], func[2], args); // call lambda with the argument list, expression list and the passed in arguments
+	console.log("func[0] in translate.js is 'lambda'");
+	return lambda.lambda.lambda(func[1], func[2], args); // call lambda with the argument list, expression list and the passed in arguments
     } else if (procedures[func]) {
-    	return procedures[func](args);
-
-    // if  (procedures[func]) {
-    // 	return procedures[func](args);
-
-    // } else if (func[0] === "lambda") { // lambda being called with passed in values
-    // 	console.log("func[0] in translate.js is 'lambda'");
-    // 	return lambda.lambda.lambda(func[1], func[2], args); // call lambda with the argument list, expression list and the passed in arguments
-
-
+	return procedures[func](args);
     } else {
 	return func + ' not supported';	
     }

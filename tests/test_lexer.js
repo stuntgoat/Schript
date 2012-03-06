@@ -1,5 +1,5 @@
 
-var lexer = require('./lexer.js');
+var lexer = require('../lexer.js');
 
 
 sexp = "(define (topcard rank hand)(cond ((eq? rank (car (car hand))) (topstack (car hand))    ) (else (topcard rank (cdr hand))) ))";

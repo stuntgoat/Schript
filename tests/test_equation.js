@@ -1,5 +1,5 @@
 
-var translator = require('./equation.js');
+var translator = require('../equation.js');
 
 var equation1 = "(* 3 9 6(- 456456 90 (expt 8 (sqrt (* 98 23 (remainder 5656 45))))) 9 8 (modulo 76 (/ 12 4)))";
 

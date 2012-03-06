@@ -1,8 +1,8 @@
 // 
 
-var lexer = require('./lexer.js');
-var parser = require('./parser.js');
-
+var lexer = require('../lexer.js');
+var parser = require('../parser.js');
+var lambda = require('../lambda.js');
 
 // var expression = "(- 2(*(- 4 6 -6)-3 7 56)99)";
 var expression = "(lambda (x y z) (+ x (* y z)))";
@@ -20,7 +20,7 @@ eq3 = "(lambda (x y z) (* x y z))"
 
 
 
-var lambda = require('./lambda.js');
+
 
 var tokenized = lexer.tokenize(eq3);
 var parsed = parser.parse(tokenized);
