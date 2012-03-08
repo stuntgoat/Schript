@@ -2,6 +2,14 @@
 
 var tester = Object.prototype.toString;
 
+function is_backquote(item) {
+    return item === '`';
+}
+
+function is_comma(item) {
+    return item === ',';
+}
+
 function is_lparen(item) {
     if (item === '(') {
 	return true;

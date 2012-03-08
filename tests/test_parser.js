@@ -1,8 +1,27 @@
-// 
-
 var lexer = require('../lexer.js');
 var parser = require('../parser.js');
 var lambda = require('../lambda.js');
+
+var assert = require('assert');
+var input = ['(', '-', '2','(', '*', '(', '-', '4', '6', '-6', ')', '-3', '7', '56', ')', '99', ')'];
+
+suite('Lexer.js', function(){
+          test('Break tokens on spaces and include negative numbers', function () {
+
+var expression = "(- 2(*(- 4 6 -6)-3 7 56)99)";
+
+                   var lexed = lexer.tokenize(expression);
+	           assert.deepEqual(parsed, expected_output);
+	       });
+      });
+
+
+
+
+
+
+
+
 
 // var expression = "(- 2(*(- 4 6 -6)-3 7 56)99)";
 var expression = "(lambda (x y z) (+ x (* y z)))";

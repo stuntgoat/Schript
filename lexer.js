@@ -39,5 +39,4 @@ function tokenize(equation) {
     }
     return stack;
 }
-
 exports.tokenize = tokenize;

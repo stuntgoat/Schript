@@ -21,3 +21,6 @@
 /.emacs.desktop
 /.emacs.desktop.lock
 /define.js~
+/define_syntax.js~
+/macro_expand.js~
+/tests/test_macros.js~

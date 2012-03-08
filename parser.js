@@ -10,9 +10,7 @@ function pre_parse(tokenized) {
     // nested JavaScript arrays.
     var depth = 0;
     var stack = {};
-//    console.log(tokenized);
     for (var i in tokenized) {
-//	console.log("tokenized[i]: ", tokenized[i]);
 	if (predicates.is_lparen(tokenized[i])) {
 	    depth += 1;
 	    stack[depth] = [];
@@ -26,7 +24,6 @@ function pre_parse(tokenized) {
 	    stack[depth].push(tokenized[i]);
 	}
     }
-//    console.log("Stack Depth:", stack[depth]);
     return stack[depth];
 }
 
