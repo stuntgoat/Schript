@@ -44,7 +44,6 @@ var bindings = {
     '>': generate_compare('>'),
     '>=': generate_compare('>='),
     '<=': generate_compare('<=')
-
 };
 
 // (2 (6))
@@ -84,12 +83,38 @@ var lambda = {
     args: ['2']
 };
 
-// var our_if = {
-//     form: 'if',
-//     cond: {
-//         form:
+// (if (< 2 5) 0 1)
+var if_ast = {
+  form: "if",
+  cond: {
+    form: "normal",
+    proc: {
+      form: "symbol",
+      symb: "<"
+    },
+    args: ["2", "5", "8"]
+  },
+  texp: {
+    form: "identity",
+    ival: "0"
+  },
+  fexp: {
+    form: "identity",
+    ival: "1"
+  }
+};
 
-// }
+// (define foo 2)
+var def_ast = {
+  form: "define",
+  symb: "foo",
+  expr: {
+    form: "identity",
+    ival: "2"
+  }
+};
+
+
 
 function ast_to_js(node) {
     return form_handlers[node.form](node);
@@ -109,9 +134,16 @@ var form_handlers = {
         return 'function (' + node.args.toString() + ') { return ' + ast_to_js(node.expr) + ';}';
     },
     'if': function (node) {
-        return '(function ('
+        return '(function () { if (' + ast_to_js(node.cond) + ') { return ' + ast_to_js(node.texp) + '; } else { return ' + ast_to_js(node.fexp) + '; } })()';
     
+    },
+    identity: function (node) {
+        return node.ival;
+    },
+    define: function (node) {
+        return "var " + node.symb + " = " + ast_to_js(node.expr) + ";";
     }
+
 };
 
 var lam = {
@@ -127,7 +159,6 @@ var lam = {
         }
 };
 
-console.log(ast_to_js(lam));
 var m = "(+ 5 6 (- 8 3))";
 
 var list_ast = {
@@ -140,6 +171,7 @@ var list_ast = {
 };
 
 
+console.log(ast_to_js(def_ast));
 
 
 
