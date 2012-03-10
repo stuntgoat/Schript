@@ -48,7 +48,7 @@ function ast(parsed) {
     }
     return stack;
 }
-exports.ast = ast;
+
 
 function parse(tokenized) {
     // export parse    
@@ -57,4 +57,4 @@ function parse(tokenized) {
     return ast(parsed);
 }
 exports.parse = parse;
-
+exports.ast = ast;

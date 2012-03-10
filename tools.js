@@ -3,6 +3,16 @@
 
 //var predicates = require('./predicates.js');
 
+function zip(array1, array2) {
+    // Does not insure that passed in arrays are of equal length
+    var zipped = [];    
+    var len = array1.length;
+    for (var i=0; i<len; i++) {
+        zipped.push([array1[i], array2[i]]);
+    }
+    return zipped;
+}
+
 function merge_objects(objs) {
     // Accepts an array of objects; Returns: a single object
     // with keys in the previous objects overwritten by the 
@@ -37,10 +47,8 @@ function merge_lambda_args(obj) {
     }
     return arg_stack;
 }
+
 exports.merge_lambda_args = merge_lambda_args;
+exports.merge_objects = merge_objects;
+exports.zip = zip;
 
-tools = {
-    merge_objects: merge_objects
-}
-
-exports.tools = tools;

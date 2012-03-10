@@ -32,7 +32,9 @@ exports.ast_to_js = ast_to_js;
 
 function pre_translate(expression) {
     var tokenized = lexer.tokenize(expression);
+    console.log(JSON.stringify(tokenized));
     var parsed = parser.parse(tokenized);
+    console.log(JSON.stringify(parsed));
     return parsed;
 }
 
