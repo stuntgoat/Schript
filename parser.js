@@ -62,17 +62,20 @@ var form_handlers = {
         return 'function (' + node.args.toString() + ') { return ' + ast_to_js(node.expr) + ';}';
     },
     'if': function (node) {
-        return '(function () { if (' + ast_to_js(node.cond) + ') { return ' + ast_to_js(node.texp) + '; } else { return ' + ast_to_js(node.fexp) + '; } })()';
-    
+        return '(' +ast_to_js(node.cond) + ') ? ' + ast_to_js(node.texp) + ' : ' + ast_to_js(node.fexp) + ';';
     },
+    // 'if': function (node) {
+    //     return '(function () { if (' + ast_to_js(node.cond) + ') { return ' + ast_to_js(node.texp) + '; } else { return ' + ast_to_js(node.fexp) + '; } })()';
+    
+    // },
     identity: function (node) {
         return node.ival;
     },
     define: function (node) {
         return "var " + node.symb + " = " + ast_to_js(node.expr) + ";";
     }
-    
 };
+
 console.log("\n\n");
 // (define foo 2)
 var def_ast = {
@@ -142,7 +145,7 @@ var if_ast = {
   }
 };
 
-console.log("~input: (if (< 2 5) 0 1)");
+console.log("~input: (if (< 2 5 8) 0 1)");
 console.log("output: ", ast_to_js(if_ast));
 console.log("\n\n");
 
