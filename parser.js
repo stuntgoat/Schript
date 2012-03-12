@@ -53,7 +53,7 @@ function ast_to_js(node) {
 var form_handlers = {
     normal: function (node) {
         if (node.proc.symb) {
-        return bindings[node.proc.symb](node.args);
+            return bindings[node.proc.symb](node.args);
         } else {
             return '(' + ast_to_js(node.proc) + ')(' + node.args.toString() + ')';
         }
@@ -62,12 +62,10 @@ var form_handlers = {
         return 'function (' + node.args.toString() + ') { return ' + ast_to_js(node.expr) + ';}';
     },
     'if': function (node) {
-        return '(' +ast_to_js(node.cond) + ') ? ' + ast_to_js(node.texp) + ' : ' + ast_to_js(node.fexp) + ';';
+        return '(' + ast_to_js(node.cond) + ') ? ' + ast_to_js(node.texp) + ' : ' + ast_to_js(node.fexp) + ';';
     },
     // 'if': function (node) {
     //     return '(function () { if (' + ast_to_js(node.cond) + ') { return ' + ast_to_js(node.texp) + '; } else { return ' + ast_to_js(node.fexp) + '; } })()';
-    
-    // },
     identity: function (node) {
         return node.ival;
     },
@@ -75,6 +73,35 @@ var form_handlers = {
         return "var " + node.symb + " = " + ast_to_js(node.expr) + ";";
     }
 };
+
+// (defmacro ham (a b c) `(+ ,a (- ,b ,c)))
+var dm_ast = {
+    form: 'defmacro',
+    symb: 'ham',
+    args: ['a', 'b', 'c'],
+    mexp: ['`(', '+', ',a', '(', '-', ',b', ',c', ')', ')', ')']
+};
+
+var defmacro = function (node) {
+    // create a function that will accept variables and apply them to a copy of mexp
+    var macro = function (args) {
+        var mexp = node.mexp; // a copy of the unexpanded macro form
+        // an object matching defmacro's declared args to passed-in args at macro call
+        var arg_pairs = tools.zip(node.args, args).reduce(function (acc, val) { acc[val[0]] = val[1]; return acc}, {});
+        // expand macro expression by parsing all reducable expressions first
+
+        // then substitute macro's args for passed-in args from macro call
+        
+        // create AST from expanded generated Scheme string
+
+        // call ast_to_js on AST
+        
+    };
+    // place macro function inside local copy of form_handlers
+    form_handlers[node.symb] = macro;
+    
+};
+
 
 console.log("\n\n");
 // (define foo 2)
@@ -89,9 +116,6 @@ var def_ast = {
 console.log("~input: (define foo 2)");
 console.log("output: ", ast_to_js(def_ast));
 console.log("\n\n");
-
-
-
 
 var lam = {
         form: "lambda",

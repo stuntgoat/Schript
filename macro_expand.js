@@ -18,7 +18,44 @@ var tools = require("./tools.js");
 //     expression: [ '`(', ',b', ',a', ')' ]
 //     }
 
-1
+
+var m_ast = {
+    form: 'normal',
+    proc: {
+        form: 'symbol',
+        symb: '+'
+    },
+    args: ['5', '6', {
+               form: 'normal',
+               proc: {
+                   form: 'symbol',
+                   symb: '-'
+               },
+               args: ['8', '3']
+           }]
+};
+// example of lambda:n
+// ((lambda (x) (* x x)) 2)
+var lambda = {
+    form: "normal",
+    proc: {
+        form: "lambda",
+        args: ["x"],
+        expr: {
+            form: "normal",
+            proc: {
+                form: "symbol",
+                symb: "*"
+            },
+            args: ['x', 'x']
+        }
+    },
+    args: ['2']
+};
+
+
+
+
 // input: macro_name = 'reverse', passed_args = ["'foo'", 'length']
 // ouput: {func: 'length' , args: ['"foo"']}
 function macro_expand(macro_name, passed_args) { 
@@ -55,6 +92,16 @@ function macro_expand(macro_name, passed_args) {
     return ast_chunk;
 }
 
+
+
+
+
+function tokenize_macro_expression(expression) {
+    // tokenize the Lisp style macro expression
+}
+
+exports.macro_expand = macro_expand;
+
 // function substitute(token_table, token) {
 //     // need to take &optional and &rest tokens if listed in the 
 //     if (token_table[token]) {
@@ -79,9 +126,3 @@ function macro_expand(macro_name, passed_args) {
 
 
 
-
-function tokenize_macro_expression(expression) {
-    // tokenize the Lisp style macro expression
-}
-
-exports.macro_expand = macro_expand;
