@@ -5,6 +5,9 @@
 //       - check for illegal characters
 //       - chech for misc. syntax errors
 
+// Tuesday - lexer lookup table: finish
+
+
 var match_table = [
     {
         regex_str: "(,?\\d+[\\w_-][\\d\\w_-]+)", // symbol
@@ -50,16 +53,29 @@ var match_table = [
     }
 ];
 
+
+// TODO: better way to push tokens
+// 
+var match_indexer = match_table.length; // first and last two elements are not needed
+var match_index_regex = /\d+/;
+
 function tokenize(expression) {
     var tokens = [];    
     var regex_string = [].join.apply(match_table.map(function (elem, index, array) { return elem.regex_str;}, ''), ['|']);    
     var regex = new RegExp(regex_string, 'g');
+    
     expression.replace(regex, function(match) {
-                           for (var i=1; i<arguments.length-2; i++) {
-                               if (arguments[i] !== undefined) {
-                                   tokens.push(match_table[i-1].handler_f(match));
-                               }
-                           }
+                           delete arguments[0];
+                           delete arguments[13];
+                           delete arguments[12];
+                           var index = parseInt(JSON.stringify(arguments).match(match_index_regex));
+                           tokens.push(match_table[index - 1].handler_f(match));
+
+                           // for (var i=1; i<arguments.length-2; i++) {
+                           //     if (arguments[i] !== undefined) {
+                           //         tokens.push(match_table[i-1].handler_f(match));
+                           //     }
+                           // }
                            return '';
                        });
     return tokens;
@@ -120,3 +136,14 @@ exports.tokenize = tokenize;
 //                        });
 //     return tokens;
 // }                             
+
+// var a =  { '0': '3',   '1': undefined,   '2': '3',   '3': undefined,   '4': undefined,   '5': undefined,   '6': undefined,   '7': undefined,   '8': undefined,   '9': undefined,   '10': undefined,   '11': undefined,   '12': 8,   '13': '(+ 2.90 3)' }  ;
+// function include(result) {
+//     var match = result['0'];
+//     delete result['0'];
+//     return (result.indexOf(match) != -1);
+// }
+// console.log(include(a));
+    
+    
+  
