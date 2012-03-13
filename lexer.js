@@ -52,7 +52,7 @@ var match_table = [
         handler_f: function(token) { return {'token': 'L_PAREN', attribute: 'quoted'};}
     }
 ];
-
+exports.match_table = match_table;
 
 // TODO: better way to push tokens
 // 
@@ -82,9 +82,9 @@ function tokenize(expression) {
 }                             
 
 
-var input = '(+ 2.90 3)';
-console.log('input: ', input);
-console.log('output: ', tokenize(input));
+// var input = '(+ 2.90 3)';
+// console.log('input: ', input);
+// console.log('output: ', tokenize(input));
 exports.tokenize = tokenize;
 
 
