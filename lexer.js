@@ -53,12 +53,9 @@ var match_table = [
 function tokenize(expression) {
     var tokens = [];    
     var regex_string = [].join.apply(match_table.map(function (elem, index, array) { return elem.regex_str;}, ''), ['|']);    
-    console.log(regex_string);
     var regex = new RegExp(regex_string, 'g');
     expression.replace(regex, function(match) {
-                           console.log(arguments);
                            for (var i=1; i<arguments.length-2; i++) {
-
                                if (arguments[i] !== undefined) {
                                    tokens.push(match_table[i-1].handler_f(match));
                                }
@@ -67,6 +64,7 @@ function tokenize(expression) {
                        });
     return tokens;
 }                             
+
 
 var input = '(+ 2.90 3)';
 console.log('input: ', input);
