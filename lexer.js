@@ -10,11 +10,17 @@
 
 var match_table = [
     {
-        regex_str: "(,?\\d+[\\w_-][\\d\\w_-]+)", // symbol
-        handler_f:  function(token) { return {'token': 'symbol', attribute: 'unquoted'};}},
+        regex_str: "(\\'?\\d*[\\w_-][\\d\\w_-]+)", // quoted symbol
+        handler_f:  function(token) { return {'token': 'symbol', attribute: 'quoted'};}
+    },
+    {
+        regex_str: "(\\,?\\d*[\\w_-][\\d\\w_-]+)", // symbol
+        handler_f:  function(token) { return {'token': 'symbol', attribute: 'unquoted'};} 
+    },  
     {
         regex_str:"(\\d+[\\.]?\\d*)", // numbers
-        handler_f: function(token) { return {'token': 'NUMBER', value: token };}},
+        handler_f: function(token) { return {'token': 'NUMBER', value: token };}
+    },
     {
         regex_str: "(\\+)", // addition
         handler_f: function(token) { return {'token': 'ADD'};}
@@ -61,14 +67,16 @@ var match_index_regex = /\d+/;
 
 function tokenize(expression) {
     var tokens = [];    
-    var regex_string = [].join.apply(match_table.map(function (elem, index, array) { return elem.regex_str;}, ''), ['|']);    
+    var regex_string = [].join.apply(match_table.map(function (elem, index, array) { return elem.regex_str;}, ''), ['|']); 
+    console.log(regex_string);    
     var regex = new RegExp(regex_string, 'g');
     
-    expression.replace(regex, function(match) {
-                           delete arguments[0];
+    expression.replace(regex, function() {
+                           var match  = arguments[0];
+			   delete arguments[0];
                            delete arguments[13];
                            delete arguments[12];
-                           var index = parseInt(JSON.stringify(arguments).match(match_index_regex));
+                           var index = parseInt(JSON.stringify(arguments).match( /\d+/));
                            tokens.push(match_table[index - 1].handler_f(match));
 
                            // for (var i=1; i<arguments.length-2; i++) {
@@ -82,7 +90,7 @@ function tokenize(expression) {
 }                             
 
 
-var input = '(+ 2.90 3)';
+var input = "('foo + 2.90 3 )"; //(`(html (head (body (p ,(+ 2 2))
 console.log('input: ', input);
 console.log('output: ', tokenize(input));
 exports.tokenize = tokenize;
@@ -91,7 +99,7 @@ exports.tokenize = tokenize;
 // function tokenize(expression) {
 //     var regex_list = ["(,?\\d+[\\w_-][\\d\\w_-]+)", // symbol
 //                       "(\\d+\\.\\d+)", // numbers
-//                       "(\\+)", // math operators
+//                       "(\\+)", // math operatorsAA
 //                       "(\\-)", // math operators
 //                       "(\\*)", // math operators
 //                       "(\\/)", // math operators
