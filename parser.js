@@ -3,6 +3,50 @@
 // exports: parse
 var predicates = require('./predicates.js');
 
+
+
+
+var lexemes = {
+    
+    '(': 'l_paren',
+    ')': 'r_paren',
+    '+': 'plus_op',
+    '-': 'minus_op',
+    '*': 'mult_op',
+    '/': 'div_op',
+    
+};
+
+var symbol_table = {
+    'if': {},
+    'lambda': {},
+    'define': {},
+    'defmacro': {}
+};
+
+function lexer(input_string) {
+    var tokens = [];
+    var i;
+    for (i=0; i < input_string.length; i++) {
+                
+
+
+
+    }
+
+
+
+    return tokens;
+}
+
+
+
+
+
+
+
+
+
 function generate_math_operator(op) {
   return function(args) {
     var res = args[0], i, tmp;
@@ -62,10 +106,7 @@ var form_handlers = {
         return 'function (' + node.args.toString() + ') { return ' + ast_to_js(node.expr) + ';}';
     },
     'if': function (node) {
-        return '(' + ast_to_js(node.cond) + ') ? ' + ast_to_js(node.texp) + ' : ' + ast_to_js(node.fexp) + ';';
-    },
-    // 'if': function (node) {
-    //     return '(function () { if (' + ast_to_js(node.cond) + ') { return ' + ast_to_js(node.texp) + '; } else { return ' + ast_to_js(node.fexp) + '; } })()';
+        return '(function () { if (' + ast_to_js(node.cond) + ') { return ' + ast_to_js(node.texp) + '; } else { return ' + ast_to_js(node.fexp) + '; } })()';},
     identity: function (node) {
         return node.ival;
     },
@@ -88,9 +129,9 @@ var defmacro = function (node) {
         var mexp = node.mexp; // a copy of the unexpanded macro form
         // an object matching defmacro's declared args to passed-in args at macro call
         var arg_pairs = tools.zip(node.args, args).reduce(function (acc, val) { acc[val[0]] = val[1]; return acc}, {});
-        // expand macro expression by parsing all reducable expressions first
 
-        // then substitute macro's args for passed-in args from macro call
+        // expand macro expression by substituting all args with passed-in vals;
+        // reduce unquoted expressions         
         
         // create AST from expanded generated Scheme string
 
@@ -98,9 +139,22 @@ var defmacro = function (node) {
         
     };
     // place macro function inside local copy of form_handlers
+    // TODO: check that macro name is not in form_handlers; if it is, throw error
     form_handlers[node.symb] = macro;
-    
 };
+
+// write function that parses a macro expression and reduces unquoted expressions- s-expressions unquoted by ',(' 
+
+// ex. input: ['`(', '+', '5', '3', ',(', '*', 'a', 'b', ')', ',a', '99', ')']
+// ex. passed-in args {a:'22', b:'88'} output: '(+ 5 3 1936 22 99)'
+
+function parse_macro_expression(mexp) {
+    // substitute all unquoted passed-in args with args that were actually passed in
+    // if any s-exp is unquoted, evaluate this expression 
+    var expanded = '';
+    
+
+}
 
 
 console.log("\n\n");
