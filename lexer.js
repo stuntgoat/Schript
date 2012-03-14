@@ -67,7 +67,10 @@ var match_index_regex = /\d+/;
 
 function tokenize(expression) {
     var tokens = [];    
-    var regex_string = [].join.apply(match_table.map(function (elem, index, array) { return elem.regex_str;}, ''), ['|']); 
+    // map creates a new array, by calling the callback with each element in the map_table
+    // apply calls join on the array created by match_table.map; the arguments to join are in an array- in this case '|'
+    var re_str_array = match_table.map(function () { return arguments[0].regex_str;});
+    var regex_string = re_str_array.join('|');
     console.log(regex_string);    
     var regex = new RegExp(regex_string, 'g');
     
@@ -78,12 +81,6 @@ function tokenize(expression) {
                            delete arguments[12];
                            var index = parseInt(JSON.stringify(arguments).match( /\d+/));
                            tokens.push(match_table[index - 1].handler_f(match));
-
-                           // for (var i=1; i<arguments.length-2; i++) {
-                           //     if (arguments[i] !== undefined) {
-                           //         tokens.push(match_table[i-1].handler_f(match));
-                           //     }
-                           // }
                            return '';
                        });
     return tokens;
