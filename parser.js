@@ -4,6 +4,26 @@
 var predicates = require('./predicates.js');
 
 // BEGIN PARSER
+// 
+// example AST:
+// '(a 7 "cat") vs. ('a 7 "cat") ----> ['QUOTE', ['a', 7, ['STRING', 'cat'], null]] vs [['QUOTE', a], 7, ['STRING', 'cat'], null]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 // END PARSER
