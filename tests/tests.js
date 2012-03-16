@@ -6,48 +6,70 @@ suite('Lexer.js',
       function(){
           test('Break tokens on spaces and include negative numbers', 
                function (){
-	           var expression = "(- 2(*(- 4 6 -6)-3 7 56)99)";
-	           var expected_output = ['(', '-', '2','(', '*', '(', '-', '4', '6', '-6', ')', '-3', '7', '56', ')', '99', ')'];
+	           var expression = "(- 2a(*(- 4 -6)-3 4)99)";
+	           var expected_output = [{token: 'L_PAREN'},
+                                          {token:'SUB'},
+                                          {token: 'symbol',
+                                           value: '2a'},
+                                          {token: 'L_PAREN'},
+                                          {token: 'MUL'},
+                                          {token: 'L_PAREN'},
+                                          {token: 'SUB'},
+                                          {token: 'NUMBER',
+                                           value: 4},
+                                          {token: 'NUMBER',
+                                           value: -6},
+                                          {token: 'R_PAREN'},
+                                          {token: 'NUMBER',
+                                           value: -3},
+                                          {token: 'NUMBER',
+                                           value: 4},
+                                          {token: 'R_PAREN'},
+                                          {token: 'NUMBER',
+                                           value: 99},
+                                          {token: 'R_PAREN'}];
 	           var lexed = lexer.tokenize(expression);
+                   console.log(expression);                   
+                   console.log(lexed);
 	           assert.deepEqual(lexed, expected_output);
 	       });
 
-          test('Break tokens for macros that use backquotes',
-               function () {
-                   var expected_ouput = [ '`(', ',b', ',a', ')' ];
-                   var input = "`(,b ,a)";
-                   assert.deepEqual(expected_ouput, lexer.tokenize(input));
-               }); 
+          // test('Break tokens for macros that use backquotes',
+          //      function () {
+          //          var expected_ouput = [ '`(', ',b', ',a', ')' ];
+          //          var input = "`(,b ,a)";
+          //          assert.deepEqual(expected_ouput, lexer.tokenize(input));
+          //      }); 
 
-          test('Comma within backquote, un-escaping opening paren',
-               function () {
-                   var expected_ouput = [ '`(', ',b', ',(', '+', 'zip', 'zop', ')', ')' ];
-                   var input = "`(,b ,(+ zip zop))";
-                   assert.deepEqual(expected_ouput, lexer.tokenize(input));
-               });
+          // test('Comma within backquote, un-escaping opening paren',
+          //      function () {
+          //          var expected_ouput = [ '`(', ',b', ',(', '+', 'zip', 'zop', ')', ')' ];
+          //          var input = "`(,b ,(+ zip zop))";
+          //          assert.deepEqual(expected_ouput, lexer.tokenize(input));
+          //      });
       });
 
-suite('Macros: ', 
-      function () {
-          test('Given a macro expression, return an AST object ', 
-               function () {
-                   var macro_expand = require("../macro_expand.js");
-                   var macro_args = ['"string_of_characters"', 'length'];
+// suite('Macros: ', 
+//       function () {
+//           test('Given a macro expression, return an AST object ', 
+//                function () {
+//                    var macro_expand = require("../macro_expand.js");
+//                    var macro_args = ['"string_of_characters"', 'length'];
 
-                   var reverse_macro = { 
-                       args: ['a', 'b'], // this is the args list passed to reverse
-                       expression: [ '`(', ',b',',a', ')'] // this is the macro expression to expand
-                   };
+//                    var reverse_macro = { 
+//                        args: ['a', 'b'], // this is the args list passed to reverse
+//                        expression: [ '`(', ',b',',a', ')'] // this is the macro expression to expand
+//                    };
 
-                   var expected_output = {
-                       'func': 'length',
-                       'args': ['"string_of_characters"']
-                   };
-                   var expanded = macro_expand.macro_expand(reverse_macro, macro_args);
-                   assert.deepEqual(expanded, expected_output);
-                   // assert.deepEqual(1, 1);
-               });
-      });
+//                    var expected_output = {
+//                        'func': 'length',
+//                        'args': ['"string_of_characters"']
+//                    };
+//                    var expanded = macro_expand.macro_expand(reverse_macro, macro_args);
+//                    assert.deepEqual(expanded, expected_output);
+//                    // assert.deepEqual(1, 1);
+//                });
+//       });
 
 
 
