@@ -1,20 +1,28 @@
 
 
-var assert = require('assert');
+var assert = require('/usr/local/lib/node_modules/chai').assert;
 var lexer = require("../lexer.js");
 suite('Lexer.js', 
       function(){
           test('Break tokens on spaces and include negative numbers', 
                function (){
 	           var expression = "(- a(*(- 4 -6)-3 4)99)";
-	           var expected_output = ['(', '-', 'a', '(', '*', '(', '-', 4, '-6', ')', '-3', '4', ')', 99, ')'];
+	           var expected_output = ['(', '-', 'a', '(', '*', '(', '-', 4, -6, ')', -3, 4, ')', 99, ')'];
 	           var lexed = lexer.tokenize(expression);
-                   console.log('exp', expression);                   
-                   console.log('lex', lexed);
-                   console.log('out', expected_output);
-	           assert.deepEqual(lexed, expected_output);
+                   console.log('expression', expression);                   
+                   console.log('lexed', lexed);
+                   console.log('expec', expected_output);
+	           assert.deepEqual(lexed,  expected_output);
 	       });
           
+
+          test('compare to Arrays',
+               function () {
+                   var expected_ouput = ['8', '8'];
+                   var output = ['8', '8'];
+                   assert.deepEqual(output, expected_ouput);
+               }); 
+
           // test('Break tokens for macros that use backquotes',
           //      function () {
           //          var expected_ouput = [ '`(', ',b', ',a', ')' ];
