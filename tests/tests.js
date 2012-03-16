@@ -6,34 +6,15 @@ suite('Lexer.js',
       function(){
           test('Break tokens on spaces and include negative numbers', 
                function (){
-	           var expression = "(- 2a(*(- 4 -6)-3 4)99)";
-	           var expected_output = [{token: 'L_PAREN'},
-                                          {token:'SUB'},
-                                          {token: 'symbol',
-                                           value: '2a'},
-                                          {token: 'L_PAREN'},
-                                          {token: 'MUL'},
-                                          {token: 'L_PAREN'},
-                                          {token: 'SUB'},
-                                          {token: 'NUMBER',
-                                           value: 4},
-                                          {token: 'NUMBER',
-                                           value: -6},
-                                          {token: 'R_PAREN'},
-                                          {token: 'NUMBER',
-                                           value: -3},
-                                          {token: 'NUMBER',
-                                           value: 4},
-                                          {token: 'R_PAREN'},
-                                          {token: 'NUMBER',
-                                           value: 99},
-                                          {token: 'R_PAREN'}];
+	           var expression = "(- a(*(- 4 -6)-3 4)99)";
+	           var expected_output = ['(', '-', 'a', '(', '*', '(', '-', 4, '-6', ')', '-3', '4', ')', 99, ')'];
 	           var lexed = lexer.tokenize(expression);
-                   console.log(expression);                   
-                   console.log(lexed);
+                   console.log('exp', expression);                   
+                   console.log('lex', lexed);
+                   console.log('out', expected_output);
 	           assert.deepEqual(lexed, expected_output);
 	       });
-
+          
           // test('Break tokens for macros that use backquotes',
           //      function () {
           //          var expected_ouput = [ '`(', ',b', ',a', ')' ];

@@ -7,87 +7,177 @@
 
 // Tuesday - lexer lookup table: finish
 
+function token_identity(token) {
+    return token;
+}
 
 var match_table = [
     {
-        regex_str: "(\\d[\\w_-][\\d\\w_-]*)", // symbol
-        handler_f:  function(token) { return {token: 'SYMBOL',
-                                              value: token};}
+        regex_str: "([a-zA-Z_]+)", // symbol
+        handler_f: token_identity
     },
+
     {
-        regex_str:"((?:-?\\d[.]?\\d*)(?!(?:[\\w_-])))", // number
-        handler_f: function(token) { return {token: 'NUMBER', 
-                                             value: parseInt(token)};}
+        regex_str:"(-?\\d+)", // number
+        handler_f: function(token) { return parseInt(token);}
     },
     {
         regex_str: "(\\+)", // addition
-        handler_f: function(token) { return {token: 'ADD'};}
+        handler_f: token_identity
     },
     {
         regex_str: "(\\-)", // subtraction
-        handler_f: function(token) { return {token: 'SUB'};}
+        handler_f: token_identity
     },
     {
         regex_str: "(\\*)", // multiplication
-        handler_f: function(token) { return {token: 'MUL'};}
+        handler_f: token_identity
     },
     {
         regex_str: "(\\/)", // division
-        handler_f: function(token) { return {token: 'DIV'};}
+        handler_f: token_identity
     },
     {
         regex_str: "(\\>)", // greater than
-        handler_f: function(token) { return {token: 'GT'};}
+        handler_f: token_identity
     },
     {
         regex_str: "(\\<)", // less than
-        handler_f: function(token) { return {token: 'LT'};}
+        handler_f: token_identity
     },
     {
         regex_str: "(\\=)", // equal sign
-        handler_f: function(token) { return {token: 'EQ'};}
+        handler_f: token_identity
     },
     {
         regex_str: "(\\@)", // equal sign
-        handler_f: function(token) { return {token: 'AT'};}
+        handler_f: token_identity
     },
     {
         regex_str: "(\\!)", // exclamation mark
-        handler_f: function(token) { return {token: 'EXCLAMATION'};}
+        handler_f: token_identity
     },
     {
         regex_str: "(\\;)", // semi-colon
-        handler_f: function(token) { return {token: 'SEMI_COLON'};}
+        handler_f: token_identity
     },
     {
         regex_str: "(\\|)", // pipe
-        handler_f: function(token) { return {token: 'PIPE'};}
+        handler_f: token_identity
     },
     {
         regex_str: "(\\()", // left paren
-        handler_f: function(token) { return {token: 'L_PAREN'};}
+        handler_f: token_identity
     },
     {
         regex_str: "(\\))", // right paren
-        handler_f: function(token) { return {token: 'R_PAREN'};}
+        handler_f: token_identity
     },
     {
         regex_str: "(\\')", // single quote
-        handler_f: function(token) { return {token: 'SINGLE_QUOTE'};}
+        handler_f: token_identity
     },
     {
         regex_str: '(\\")', // double quote
-        handler_f: function(token) { return {token: 'DOUBLE_QUOTE'};}
+        handler_f: token_identity
     },
     {
         regex_str: "(\\`)", // backquote
-        handler_f: function(token) { return {token: 'BACK_QUOTE'};}
+        handler_f: token_identity
     },
     {
         regex_str: "(\\,)", // comma
-        handler_f: function(token) { return {token: 'COMMA'};}
+        handler_f: token_identity
     }
 ];
+
+// var match_table = [
+//     // {
+//     //     regex_str: "(\d[a-zA-z_-][\w-]*)", // symbol
+//     //     handler_f:  function(token) { return {token: 'SYMBOL',
+//     //                                           value: token};}
+//     // },
+
+//     {
+//         regex_str: "([a-zA-Z_]+)", // symbol
+//         handler_f:  function(token) { return {token: 'SYMBOL',
+//                                               value: token};}
+//     },
+
+//     {
+//         regex_str:"(-?\\d+)", // number
+//         handler_f: function(token) { return {token: 'NUMBER', 
+//                                              value: parseInt(token)};}
+//     },
+//     {
+//         regex_str: "(\\+)", // addition
+//         handler_f: function(token) { return {token: 'ADD'};}
+//     },
+//     {
+//         regex_str: "(\\-)", // subtraction
+//         handler_f: function(token) { return {token: 'SUB'};}
+//     },
+//     {
+//         regex_str: "(\\*)", // multiplication
+//         handler_f: function(token) { return {token: 'MUL'};}
+//     },
+//     {
+//         regex_str: "(\\/)", // division
+//         handler_f: function(token) { return {token: 'DIV'};}
+//     },
+//     {
+//         regex_str: "(\\>)", // greater than
+//         handler_f: function(token) { return {token: 'GT'};}
+//     },
+//     {
+//         regex_str: "(\\<)", // less than
+//         handler_f: function(token) { return {token: 'LT'};}
+//     },
+//     {
+//         regex_str: "(\\=)", // equal sign
+//         handler_f: function(token) { return {token: 'EQ'};}
+//     },
+//     {
+//         regex_str: "(\\@)", // equal sign
+//         handler_f: function(token) { return {token: 'AT'};}
+//     },
+//     {
+//         regex_str: "(\\!)", // exclamation mark
+//         handler_f: function(token) { return {token: 'EXCLAMATION'};}
+//     },
+//     {
+//         regex_str: "(\\;)", // semi-colon
+//         handler_f: function(token) { return {token: 'SEMI_COLON'};}
+//     },
+//     {
+//         regex_str: "(\\|)", // pipe
+//         handler_f: function(token) { return {token: 'PIPE'};}
+//     },
+//     {
+//         regex_str: "(\\()", // left paren
+//         handler_f: function(token) { return {token: 'L_PAREN'};}
+//     },
+//     {
+//         regex_str: "(\\))", // right paren
+//         handler_f: function(token) { return {token: 'R_PAREN'};}
+//     },
+//     {
+//         regex_str: "(\\')", // single quote
+//         handler_f: function(token) { return {token: 'SINGLE_QUOTE'};}
+//     },
+//     {
+//         regex_str: '(\\")', // double quote
+//         handler_f: function(token) { return {token: 'DOUBLE_QUOTE'};}
+//     },
+//     {
+//         regex_str: "(\\`)", // backquote
+//         handler_f: function(token) { return {token: 'BACK_QUOTE'};}
+//     },
+//     {
+//         regex_str: "(\\,)", // comma
+//         handler_f: function(token) { return {token: 'COMMA'};}
+//     }
+// ];
 
 
 // TODO: better way to push tokens
