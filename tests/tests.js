@@ -16,13 +16,6 @@ suite('Lexer.js',
 	       });
           
 
-          test('compare to Arrays',
-               function () {
-                   var expected_ouput = ['8', '8'];
-                   var output = ['8', '8'];
-                   assert.deepEqual(output, expected_ouput);
-               }); 
-
           // test('Break tokens for macros that use backquotes',
           //      function () {
           //          var expected_ouput = [ '`(', ',b', ',a', ')' ];

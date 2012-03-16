@@ -3,49 +3,13 @@
 // exports: parse
 var predicates = require('./predicates.js');
 
+// BEGIN PARSER
 
 
+// END PARSER
 
-var lexemes = {
-    
-    '(': 'l_paren',
-    ')': 'r_paren',
-    '+': 'plus_op',
-    '-': 'minus_op',
-    '*': 'mult_op',
-    '/': 'div_op',
-    
-};
-
-var symbol_table = {
-    'if': {},
-    'lambda': {},
-    'define': {},
-    'defmacro': {}
-};
-
-function lexer(input_string) {
-    var tokens = [];
-    var i;
-    for (i=0; i < input_string.length; i++) {
-                
-
-
-
-    }
-
-
-
-    return tokens;
-}
-
-
-
-
-
-
-
-
+// TODO: move everything below this line to another module
+////////////////////////////////////////////////////////////////////////////////
 
 function generate_math_operator(op) {
   return function(args) {
