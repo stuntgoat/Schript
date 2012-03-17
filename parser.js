@@ -136,8 +136,6 @@ function generate_compare(op) {
 var arith_2 = ['+', 5, 2, ['-', 3, 6, 8, null], null];
 var arith_3 = ['<', 1, 2, ['+', 3, 4, null], null];
 
-console.log(ast_to_js(arith_2));
-
 exports.car = car;
 exports.cdr = cdr;
 exports.cons = cons;
