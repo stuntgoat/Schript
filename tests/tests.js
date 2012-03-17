@@ -26,6 +26,37 @@ suite('Lexer.js',
 	  //          var lexed = lexer.tokenize(expression);
 	  //          assert.deepEqual(lexed, expected_output);
 	  //      });
+=======
+          test('Break tokens on spaces and include negative numbers', 
+               function (){
+	           var expression = "(- 2a(*(- 4 -6)-3 4)99)";
+	           var expected_output = [{token: 'L_PAREN'},
+                                          {token:'SUB'},
+                                          {token: 'symbol',
+                                           value: '2a'},
+                                          {token: 'L_PAREN'},
+                                          {token: 'MUL'},
+                                          {token: 'L_PAREN'},
+                                          {token: 'SUB'},
+                                          {token: 'NUMBER',
+                                           value: 4},
+                                          {token: 'NUMBER',
+                                           value: -6},
+                                          {token: 'R_PAREN'},
+                                          {token: 'NUMBER',
+                                           value: -3},
+                                          {token: 'NUMBER',
+                                           value: 4},
+                                          {token: 'R_PAREN'},
+                                          {token: 'NUMBER',
+                                           value: 99},
+                                          {token: 'R_PAREN'}];
+	           var lexed = lexer.tokenize(expression);
+                   console.log(expression);                   
+                   console.log(lexed);
+	           assert.deepEqual(lexed, expected_output);
+	       });
+
 
           // test('Break tokens for macros that use backquotes',
           //      function () {
@@ -40,7 +71,6 @@ suite('Lexer.js',
           //          var input = "`(,b ,(+ zip zop))";
           //          assert.deepEqual(expected_ouput, lexer.tokenize(input));
           //      });
-     
 
 // suite('Macros: ', 
 //       function () {
