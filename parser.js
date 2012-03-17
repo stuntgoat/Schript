@@ -141,4 +141,4 @@ console.log(ast_to_js(arith_2));
 exports.car = car;
 exports.cdr = cdr;
 exports.cons = cons;
-
+exports.ast_to_js = ast_to_js;
