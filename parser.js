@@ -39,8 +39,6 @@ var list_1 = ['list', 2, 4, 5, null];
 var if_1 = ['if', ['<', 2, 5, 8, null], 0, 1, null];
 // if = if eval(cadr if_node), eval(caddr), else cadddr.
 
-
-
 function car(sexp) {
     if (sexp.length) {
 	return sexp[0];
@@ -78,8 +76,6 @@ function ast_to_js(sexp) {
     }
     throw new Error('in ' + sexp + ' ' + car(sexp) + ' not supported');
 }
-
-
 
 var bindings = {
     '+': generate_math_operator("+"),
@@ -123,7 +119,6 @@ function generate_math_operator(op) {
 
 function generate_compare(op) {  
     return function (args) {
-
         var first;
         var i = 0;
         var arg_length = args.length;
@@ -133,10 +128,8 @@ function generate_compare(op) {
  	do {
             first = predicates.is_array(args[i]) ? ast_to_js(args[i]) : args[i];
             second = predicates.is_array(args[i+1]) ? ast_to_js(args[i+1]) : args[i+1];
-
             if (i === arg_length - 2) { 
                 if (predicates.is_null(second)) {
-                    console.log('NEVER GOT HERE');
 		    break;
 		} else if (predicates.is_array(first)) {
 		    statement += (op + ast_to_js(first));
@@ -145,8 +138,6 @@ function generate_compare(op) {
 		}
 		break;                
             }
-
-            
             statement += '(' + first + ' ' + op + ' ' + second + ')';
 	    i++;
 	    if (i < arg_length - 2) {

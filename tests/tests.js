@@ -1,4 +1,4 @@
-
+// tests.js
 
 var assert = require('/usr/local/lib/node_modules/chai').assert;
 
@@ -16,7 +16,6 @@ suite('Lexer.js',
 		   console.log('\n');
 	           assert.deepEqual(expected_output, lexer.tokenize(expression));
 	       });
-          
 
           test('Break tokens for macros that use backquotes',
                function () {
@@ -42,7 +41,7 @@ suite('Lexer.js',
 
 suite('Parser.js', 
       function(){
-          test('Basic arithmetic', 
+          test('Basic arithmetic; nested expression', 
                function (){
 		   var ast = ['+', 5, 2, ['-', 3, 6, 8, null], null];
 		   var expected_output = "(5+2+(3-6-8))";
@@ -52,10 +51,10 @@ suite('Parser.js',
 		   console.log('\n');
 	           assert.deepEqual(expected_output, parser.ast_to_js(ast));
 	       });          test('Basic comparisons; 2 arguments', 
+
                function (){
 		   var ast = ['>', 3, 2, null];
 		   var expected_output = "(3 > 2)";
-	           
                    console.log('input:', ast);                   
                    console.log('lexed:', parser.ast_to_js(ast));
 		   console.log('\n');
@@ -83,11 +82,7 @@ suite('Parser.js',
 		   console.log('\n');
 	           assert.deepEqual(expected_output, parser.ast_to_js(ast));
 	       });
-
-
       });
-
-
 
 // suite('Macros: ', 
 //       function () {
@@ -110,14 +105,3 @@ suite('Parser.js',
 //                    // assert.deepEqual(1, 1);
 //                });
 //       });
-
-
-
-
-
-
-
-
-
-
-
