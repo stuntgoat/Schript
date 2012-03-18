@@ -21,6 +21,9 @@ function is_rparen(item) {
 function is_object(test) {
     return tester.call(test) === '[object Object]';
 }
+function is_null(test) {
+    return tester.call(test) === '[object Null]';
+}
 
 function is_array(test) {
     return tester.call(test) === '[object Array]';
@@ -47,6 +50,7 @@ exports.is_comma = is_comma;
 exports.is_lparen = is_lparen;
 exports.is_rparen = is_rparen;
 exports.is_object = is_object;
+exports.is_null = is_null;
 exports.is_array = is_array;
 exports.is_string = is_string;
 exports.is_number = is_number;
