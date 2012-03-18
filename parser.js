@@ -94,11 +94,14 @@ var bindings = {
 
 function generate_math_operator(op) {
     return function(args) {
-	assert.deepEqual(true, (args.length >= 2));
-	var i, tmp, first, last,
-        statement = '',
+	assert.deepEqual(true, (args.length >= 3));
+        var first;	
+        var i;
+        var last;
+        var statement = '';
+        var tmp;        
+
 	first = args[0];
-	
 	statement += predicates.is_array(first) ? ast_to_js(first) : first;
 	for (i=1; i<args.length; i++) {
 	    tmp = predicates.is_array(args[i]) ? ast_to_js(args[i]) : args[i];
@@ -120,19 +123,38 @@ function generate_math_operator(op) {
 
 function generate_compare(op) {  
     return function (args) {
-        var res = '',
-        i = 0; 
-        if (args.length < 2) {
-            throw new Error('too few args:');
-	}
+
+        var first;
+        var i = 0;
+        var arg_length = args.length;
+        var second;        
+        var statement = '';
+	assert.deepEqual(true, (args.length >= 3));
  	do {
-	    res += '(' + args[i] + ' ' + op + ' ' + args[i+1] + ')';
-	    i++;
-	    if (i < args.length - 1) {
-                res += ' && ';
+            first = predicates.is_array(args[i]) ? ast_to_js(args[i]) : args[i];
+            second = predicates.is_array(args[i+1]) ? ast_to_js(args[i+1]) : args[i+1];
+
+            if (i === arg_length - 2) { 
+                if (predicates.is_null(second)) {
+                    console.log('NEVER GOT HERE');
+		    break;
+		} else if (predicates.is_array(first)) {
+		    statement += (op + ast_to_js(first));
+		} else {
+		    throw new Error(args[i] + ', last item in a list, is not an s-expression or null');
+		}
+		break;                
             }
-        } while (i < args.length - 1)
-        return res;
+
+            
+            statement += '(' + first + ' ' + op + ' ' + second + ')';
+	    i++;
+	    if (i < arg_length - 2) {
+                statement += ' && ';
+            }
+
+        } while (i < arg_length - 1)
+        return statement;
     };
 }
 

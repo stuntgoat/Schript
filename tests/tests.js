@@ -38,7 +38,7 @@ suite('Lexer.js',
                    assert.deepEqual(expected_output, lexer.tokenize(input));
 
                });
-});
+      });
 
 suite('Parser.js', 
       function(){
@@ -51,7 +51,40 @@ suite('Parser.js',
                    console.log('lexed:', parser.ast_to_js(ast));
 		   console.log('\n');
 	           assert.deepEqual(expected_output, parser.ast_to_js(ast));
+	       });          test('Basic comparisons; 2 arguments', 
+               function (){
+		   var ast = ['>', 3, 2, null];
+		   var expected_output = "(3 > 2)";
+	           
+                   console.log('input:', ast);                   
+                   console.log('lexed:', parser.ast_to_js(ast));
+		   console.log('\n');
+	           assert.deepEqual(expected_output, parser.ast_to_js(ast));
 	       });
+          
+          test('Basic comparisons; 3 arguments', 
+               function (){
+		   var ast = ['>', 3, 2, 1, null];
+		   var expected_output = "(3 > 2) && (2 > 1)";
+	           
+                   console.log('input:', ast);                   
+                   console.log('lexed:', parser.ast_to_js(ast));
+		   console.log('\n');
+	           assert.deepEqual(expected_output, parser.ast_to_js(ast));
+	       });
+
+          test('Basic comparisons; 4 arguments', 
+               function (){
+		   var ast = ['>', 3, 2, 1, 0, null];
+		   var expected_output = "(3 > 2) && (2 > 1) && (1 > 0)";
+	           
+                   console.log('input:', ast);                   
+                   console.log('lexed:', parser.ast_to_js(ast));
+		   console.log('\n');
+	           assert.deepEqual(expected_output, parser.ast_to_js(ast));
+	       });
+
+
       });
 
 
