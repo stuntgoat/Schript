@@ -39,8 +39,19 @@ suite('Lexer.js',
                });
       });
 
-suite('Parser.js', 
+suite('Parser.js',  // These tests are not for the parser !!!
       function(){
+	  test('Basic arithmetic', 
+               function (){
+		   var ast = ['/', 5, 2, null];
+		   var expected_output = "(5/2)";
+	           
+                   console.log('input:', ast);                   
+                   console.log('lexed:', parser.ast_to_js(ast));
+		   console.log('\n');
+	           assert.deepEqual(expected_output, parser.ast_to_js(ast));
+	       });          
+
           test('Basic arithmetic; nested expression', 
                function (){
 		   var ast = ['+', 5, 2, ['-', 3, 6, 8, null], null];
@@ -50,17 +61,17 @@ suite('Parser.js',
                    console.log('lexed:', parser.ast_to_js(ast));
 		   console.log('\n');
 	           assert.deepEqual(expected_output, parser.ast_to_js(ast));
-	       });          test('Basic comparisons; 2 arguments', 
-
+	       });          
+	  test('Basic comparisons; 2 arguments', 
                function (){
 		   var ast = ['>', 3, 2, null];
 		   var expected_output = "(3 > 2)";
-                   console.log('input:', ast);                   
-                   console.log('lexed:', parser.ast_to_js(ast));
+		   console.log('input:', ast);                   
+		   console.log('lexed:', parser.ast_to_js(ast));
 		   console.log('\n');
 	           assert.deepEqual(expected_output, parser.ast_to_js(ast));
-	       });
-          
+	      });
+              
           test('Basic comparisons; 3 arguments', 
                function (){
 		   var ast = ['>', 3, 2, 1, null];
@@ -82,6 +93,17 @@ suite('Parser.js',
 		   console.log('\n');
 	           assert.deepEqual(expected_output, parser.ast_to_js(ast));
 	       });
+          test('Procedure: define ', 
+               function (){
+		   var ast = ['define', 'foo', 2, null];
+		   var expected_output = "var foo = 2;"
+	           
+                   console.log('input:', ast);                   
+                   console.log('lexed:', parser.ast_to_js(ast));
+		   console.log('\n');
+	           assert.deepEqual(expected_output, parser.ast_to_js(ast));
+	       });
+
       });
 
 // suite('Macros: ', 

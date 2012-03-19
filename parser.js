@@ -12,18 +12,12 @@ var string_cat = [['STRING', 'cat'], null];
 // '(a 7 "cat")
 var cat = ['QUOTE', ['a', 7, ['STRING', 'cat'], null]];
 
-
-// '(a 7 "cat")
-var cat = ['QUOTE', ['a', 7, ['STRING', 'cat'], null]];
-
 // ('a 7 "cat")
 var unquoted_cat =  [['QUOTE', 'a'], 7, ['STRING', 'cat'], null];
 
 // (+ 5 6 (- 8 3))
 var arith_1 = ['+', 5, 6, ['-', 8, 3, null], null];
 
-// (define foo 2)
-var define_1 = ['define', 'foo', 2, null];
 
 // ((lambda (x) (* x x)) 2)
 var lambda_1 = [['lambda', ['x', null], ['*', 'x', 'x', null]], 2, null];
@@ -67,14 +61,56 @@ function cons(exp1, exp2) {
     }
 }
 
-function ast_to_js(sexp) {
 
-    if (bindings[car(sexp)]) {
-	return bindings[car(sexp)](cdr(sexp));
+
+function ast_to_js(sexp) {
+    if (predicates.is_array(sexp)) {
+	if (bindings[car(sexp)]) {
+	    return bindings[car(sexp)](cdr(sexp));
+	} else if (form_handlers[car(sexp)]) {
+	    // pass to form handlers
+	    return form_handlers[car(sexp)](cdr(sexp));
+	}
+	throw new Error('in ' + sexp + ' ' + car(sexp) + ' not supported');
     } else {
-	// pass to form handlers
+	return sexp;
     }
-    throw new Error('in ' + sexp + ' ' + car(sexp) + ' not supported');
+}
+
+function is_within_env(arg) {
+    return (bindings[arg] || form_handlers[arg]);
+}
+
+function define(cdr_define) {
+    var expression = '';
+    var procedure_args;
+    var procedure_expr;
+    var procedure_name;
+    // variable and expression/value or (function arguments) expression
+    if (predicates.is_array(car(cdr_define))) {
+	// we are defining a procedure that takes args
+	procedure_name = car(car((cdr_define)));
+	procedure_args = cdr(car(cdr(cdr_define)));
+	procedure_expr = car(cdr(cdr_define));
+	
+    } else if (predicates.is_string(car(cdr_define))) {
+	// we are defining something that accepts zero arguments
+	procedure_name = car((cdr_define));
+	procedure_expr = cdr(cdr_define);
+	expression += 'var ' + procedure_name + ' = ';
+	if (is_within_env(car(procedure_expr))) { // if car expression is in env, pass procedure to ast_to_js
+	    expression += ast_to_js(procedure_expr);	    
+	} else { // otherwise it's a var
+	    expression += car(procedure_expr);
+	}
+	return expression + ';';
+    }
+}
+
+
+
+var form_handlers = {
+    define: define
 }
 
 var bindings = {
@@ -158,3 +194,11 @@ exports.cdr = cdr;
 exports.cons = cons;
 exports.ast_to_js = ast_to_js;
 
+
+// (define foo 2)
+var define_1 = ['define', 'foo', 2, null];
+// console.log(ast_to_js(define_1));
+
+// (define (sqr_me x) (* x x))
+// var define_2 = ['define', ['sqr_me', 'x', null], ['*', 'x', 'x', null], null];
+// console.log(ast_to_js(define_2));
