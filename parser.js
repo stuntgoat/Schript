@@ -29,10 +29,6 @@ var lambda_2 = ['lambda', [null], ['*', 90, 3, null], null];
 var list_1 = ['list', 2, 4, 5, null];
 // eval(cons(2, cons(4, cons(5, null)
 
-// (if (< 2 5 8) 0 1)
-var if_1 = ['if', ['<', 2, 5, 8, null], 0, 1, null];
-// if = if eval(cadr if_node), eval(caddr), else cadddr.
-
 function car(sexp) {
     if (sexp.length) {
 	return sexp[0];
@@ -61,8 +57,6 @@ function cons(exp1, exp2) {
     }
 }
 
-
-
 function ast_to_js(sexp) {
     if (predicates.is_array(sexp)) {
 	if (bindings[car(sexp)]) {
@@ -81,18 +75,44 @@ function is_within_env(arg) {
     return (bindings[arg] || form_handlers[arg]);
 }
 
+function list_arguments(arguments) {
+    var args_with_commas;
+    if (arguments[(arguments.length - 1)] === null) {
+	arguments.pop();
+	args_with_commas = arguments.join(', ');
+    } else {
+	args_with_commas = arguments.join(', ');
+    } 
+    return args_with_commas;
+}
+
+
+// (if (< 2 5 8) 0 1)
+var if_1 = ['if', ['<', 2, 5, 8, null], 0, 1, null];
+// if = if eval(cadr if_node), eval(caddr), else cadddr.
+
+
 function define(cdr_define) {
     var expression = '';
     var procedure_args;
     var procedure_expr;
     var procedure_name;
+
     // variable and expression/value or (function arguments) expression
     if (predicates.is_array(car(cdr_define))) {
 	// we are defining a procedure that takes args
-	procedure_name = car(car((cdr_define)));
-	procedure_args = cdr(car(cdr(cdr_define)));
+	procedure_name = car(car(cdr_define));
+	procedure_args = cdr(car(cdr_define));
 	procedure_expr = car(cdr(cdr_define));
-	
+//	console.log('name', procedure_name);
+//	console.log('args', procedure_args);
+//	console.log('expression', procedure_expr);
+	expression += 'var ' + procedure_name + ' = ';
+	expression += 'function ' +'(' + list_arguments(procedure_args) + ') {';
+	expression += 'return ' + ast_to_js(procedure_expr) + ';';
+	expression += '}';
+	return expression + ';';
+
     } else if (predicates.is_string(car(cdr_define))) {
 	// we are defining something that accepts zero arguments
 	procedure_name = car((cdr_define));
@@ -160,7 +180,7 @@ function generate_compare(op) {
         var arg_length = args.length;
         var second;        
         var statement = '';
-	assert.deepEqual(true, (args.length >= 3));
+	assert.deepEqual(true, (args.length >= 2));
  	do {
             first = predicates.is_array(args[i]) ? ast_to_js(args[i]) : args[i];
             second = predicates.is_array(args[i+1]) ? ast_to_js(args[i+1]) : args[i+1];
@@ -197,8 +217,8 @@ exports.ast_to_js = ast_to_js;
 
 // (define foo 2)
 var define_1 = ['define', 'foo', 2, null];
-// console.log(ast_to_js(define_1));
+console.log(ast_to_js(define_1));
 
 // (define (sqr_me x) (* x x))
-// var define_2 = ['define', ['sqr_me', 'x', null], ['*', 'x', 'x', null], null];
-// console.log(ast_to_js(define_2));
+var define_2 = ['define', ['sqr_me', 'x', 'y', 'z', null], ['*', 'x', 'y', null], null];
+console.log(ast_to_js(define_2));

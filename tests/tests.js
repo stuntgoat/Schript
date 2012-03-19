@@ -93,10 +93,20 @@ suite('Parser.js',  // These tests are not for the parser !!!
 		   console.log('\n');
 	           assert.deepEqual(expected_output, parser.ast_to_js(ast));
 	       });
-          test('Procedure: define ', 
+          test('Procedure: define: variable assignment', 
                function (){
 		   var ast = ['define', 'foo', 2, null];
 		   var expected_output = "var foo = 2;"
+	           
+                   console.log('input:', ast);                   
+                   console.log('lexed:', parser.ast_to_js(ast));
+		   console.log('\n');
+	           assert.deepEqual(expected_output, parser.ast_to_js(ast));
+	       });
+          test('Procedure: define: function assignment', 
+               function (){
+		   var ast = ['define', ['sqr_me', 'x', 'y', 'z', null], ['*', 'x', 'y', 'z', null], null];
+		   var expected_output = "var sqr_me = function (x, y, z) {return (x*y*z);};";
 	           
                    console.log('input:', ast);                   
                    console.log('lexed:', parser.ast_to_js(ast));
