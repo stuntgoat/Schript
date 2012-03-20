@@ -9,15 +9,14 @@ var assert = require('assert');
 // ("cat")
 var string_cat = [['STRING', 'cat'], null];
 
-// '(a 7 "cat")
+// '(a 7 "cat") => (a 7 "cat") when evaled at repl
 var cat = ['QUOTE', ['a', 7, ['STRING', 'cat'], null]];
 
-// ('a 7 "cat")
+// ('a 7 "cat") // an error
 var unquoted_cat =  [['QUOTE', 'a'], 7, ['STRING', 'cat'], null];
 
 // (+ 5 6 (- 8 3))
 var arith_1 = ['+', 5, 6, ['-', 8, 3, null], null];
-
 
 // ((lambda (x) (* x x)) 2)
 var lambda_1 = [['lambda', ['x', null], ['*', 'x', 'x', null]], 2, null];
@@ -58,12 +57,17 @@ function cons(exp1, exp2) {
 }
 
 function ast_to_js(sexp) {
+    // TODO: use is_within_env 
+//    console.log('value passed to ast_to_js:', sexp);
     if (predicates.is_array(sexp)) {
+	
 	if (bindings[car(sexp)]) {
 	    return bindings[car(sexp)](cdr(sexp));
 	} else if (form_handlers[car(sexp)]) {
-	    // pass to form handlers
 	    return form_handlers[car(sexp)](cdr(sexp));
+	} else if (((sexp.length === 2)) && (sexp[1] === null)) {
+	    // a list of one value, not in ENV
+	    return ast_to_js(car(sexp));
 	}
 	throw new Error('in ' + sexp + ' ' + car(sexp) + ' not supported');
     } else { // not an expression so return the value
@@ -112,6 +116,7 @@ function define(cdr_define) {
 	expression += 'function ' +'(' + list_arguments(procedure_args) + ') {';
 	expression += 'return ' + ast_to_js(procedure_expr) + ';';
 	expression += '}';
+	add_binding_procedure(procedure_name);
 	return expression + ';';
 
     } else if (predicates.is_string(car(cdr_define))) {
@@ -124,14 +129,19 @@ function define(cdr_define) {
 	} else { // otherwise it's a var
 	    expression += car(procedure_expr);
 	}
+	add_binding_var(procedure_name, ast_to_js(procedure_expr));
 	return expression + ';';
     }
 }
 
+var ENV = {
+    
+};
+
 var form_handlers = {
     define: define,
     'if': my_if 
-}
+};
 
 var bindings = {
     '+': generate_math_operator("+"),
@@ -143,6 +153,34 @@ var bindings = {
     '>=': generate_compare('>='),
     '<=': generate_compare('<=')
 };
+
+
+function add_binding_procedure(name) {
+    // TODO: do not allow rebinding of builtins???
+    bindings[name] = local_procedure(name);
+}
+
+function add_binding_var(name, value) {
+    // TODO: do not allow rebinding of builtins???
+    bindings[name] = value;
+}
+
+function local_procedure(name) { // takes 
+    return function() {
+	var function_call = '';
+	var i = 0;
+	var args = [];
+	function_call += name;
+	function_call += '(';
+	for (i; i<arguments.length; i++) {
+	    args.push(arguments[i]);
+	}
+	function_call += args.join(', ');
+	function_call += ');';
+	return function_call;
+    };
+}
+
 
 function generate_math_operator(op) {
     return function(args) {
@@ -211,6 +249,8 @@ exports.car = car;
 exports.cdr = cdr;
 exports.cons = cons;
 exports.ast_to_js = ast_to_js;
+exports.bindings = bindings;
+exports.form_handlers = form_handlers;
 
 // // (define foo 2)
 // var define_1 = ['define', 'foo', 2, null];

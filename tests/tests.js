@@ -12,7 +12,7 @@ suite('Lexer.js',
 	           var expected_output = ['(', '-', 'a', '(', '*', '(', '-', 4, -6, ')', -3, 4, ')', 99, ')'];
 	           
                    console.log('input:', expression);                   
-                   console.log('lexed:', lexer.tokenize(expression));
+                   console.log('output:', lexer.tokenize(expression));
 		   console.log('\n');
 	           assert.deepEqual(expected_output, lexer.tokenize(expression));
 	       });
@@ -22,8 +22,9 @@ suite('Lexer.js',
                    var expected_output = [ '`', '(', ',', 'b', ',', 'a', ')' ],
                    input = "`(,b ,a)";
 		   console.log('input:', input);                   
-                   console.log('lexed:', lexer.tokenize(input));
+                   console.log('output:', lexer.tokenize(input));
 		   console.log('\n');
+
                    assert.deepEqual(expected_output, lexer.tokenize(input));
                }); 
 
@@ -32,7 +33,7 @@ suite('Lexer.js',
                    var expected_output = [ '`', '(', ',', 'b', ',', '(', '+', 'zip', 'zop', ')', ')' ];
                    var input = "`(,b ,(+ zip zop))";
 		   console.log('input:', input);                   
-                   console.log('lexed:', lexer.tokenize(input));
+                   console.log('output:', lexer.tokenize(input));
 		   console.log('\n');
                    assert.deepEqual(expected_output, lexer.tokenize(input));
 
@@ -47,7 +48,7 @@ suite('Parser.js',  // These tests are not for the parser !!!
 		   var expected_output = "(5/2)";
 	           
                    console.log('input:', ast);                   
-                   console.log('lexed:', parser.ast_to_js(ast));
+                   console.log('output:', parser.ast_to_js(ast));
 		   console.log('\n');
 	           assert.deepEqual(expected_output, parser.ast_to_js(ast));
 	       });          
@@ -58,7 +59,7 @@ suite('Parser.js',  // These tests are not for the parser !!!
 		   var expected_output = "(5+2+(3-6-8))";
 	           
                    console.log('input:', ast);                   
-                   console.log('lexed:', parser.ast_to_js(ast));
+                   console.log('output:', parser.ast_to_js(ast));
 		   console.log('\n');
 	           assert.deepEqual(expected_output, parser.ast_to_js(ast));
 	       });          
@@ -67,7 +68,7 @@ suite('Parser.js',  // These tests are not for the parser !!!
 		   var ast = ['>', 3, 2, null];
 		   var expected_output = "(3 > 2)";
 		   console.log('input:', ast);                   
-		   console.log('lexed:', parser.ast_to_js(ast));
+		   console.log('output:', parser.ast_to_js(ast));
 		   console.log('\n');
 	           assert.deepEqual(expected_output, parser.ast_to_js(ast));
 	      });
@@ -78,7 +79,7 @@ suite('Parser.js',  // These tests are not for the parser !!!
 		   var expected_output = "(3 > 2) && (2 > 1)";
 	           
                    console.log('input:', ast);                   
-                   console.log('lexed:', parser.ast_to_js(ast));
+                   console.log('output:', parser.ast_to_js(ast));
 		   console.log('\n');
 	           assert.deepEqual(expected_output, parser.ast_to_js(ast));
 	       });
@@ -89,7 +90,7 @@ suite('Parser.js',  // These tests are not for the parser !!!
 		   var expected_output = "(3 > 2) && (2 > 1) && (1 > 0)";
 	           
                    console.log('input:', ast);                   
-                   console.log('lexed:', parser.ast_to_js(ast));
+                   console.log('output:', parser.ast_to_js(ast));
 		   console.log('\n');
 	           assert.deepEqual(expected_output, parser.ast_to_js(ast));
 	       });
@@ -97,22 +98,28 @@ suite('Parser.js',  // These tests are not for the parser !!!
                function (){
 		   var ast = ['define', 'foo', 2, null];
 		   var expected_output = "var foo = 2;";
-	           
                    console.log('input:', ast);                   
-                   console.log('lexed:', parser.ast_to_js(ast));
+                   console.log('output 1:', parser.ast_to_js(ast));
+		   console.log('output 2: ' + "parser.bindings['foo'] = " + parser.bindings['foo']);
 		   console.log('\n');
+		   assert.deepEqual (2, parser.bindings['foo']);
 	           assert.deepEqual(expected_output, parser.ast_to_js(ast));
+		   delete parser.bindings['foo'];
 	       });
 
           test('Procedure: define: function assignment', 
                function (){
-		   var ast = ['define', ['sqr_me', 'x', 'y', 'z', null], ['*', 'x', 'y', 'z', null], null];
-		   var expected_output = "var sqr_me = function (x, y, z) {return (x*y*z);};";
-	           
+		   var ast = ['define', ['mult_us', 'x', 'y', 'z', null], ['*', 'x', 'y', 'z', null], null];
+		   var expected_output = "var mult_us = function (x, y, z) {return (x*y*z);};";
                    console.log('input:', ast);                   
-                   console.log('lexed:', parser.ast_to_js(ast));
+                   console.log('output 1: ', parser.ast_to_js(ast));
+                   console.log('output 2: ' + "parser.bindings['mult_us'](2, 3, 4) = " + 
+			       parser.bindings['mult_us'](2, 3, 4));
 		   console.log('\n');
+
 	           assert.deepEqual(expected_output, parser.ast_to_js(ast));
+		   assert.deepEqual("mult_us(2, 3, 4);", parser.bindings['mult_us'](2, 3, 4));
+		   delete parser.bindings['mult_us'];
 	       });
 
           test('Procedure: if: return expression', 
@@ -120,7 +127,7 @@ suite('Parser.js',  // These tests are not for the parser !!!
 		   var ast = ['if', ['<', 2, 5, 8, null], ['+', 9, 9, null], ['-', 9, 9, null], null];
 		   var expected_output = "function () { if ((2 < 5) && (5 < 8)) { return (9+9); } else { return (9-9); }}()";
                    console.log('input:', ast);                   
-                   console.log('lexed:', parser.ast_to_js(ast));
+                   console.log('output:', parser.ast_to_js(ast));
 		   console.log('\n');
 	           assert.deepEqual(expected_output, parser.ast_to_js(ast));
 	       });
@@ -130,7 +137,7 @@ suite('Parser.js',  // These tests are not for the parser !!!
 		   var ast = ['if', ['<', 2, 5, 8, null], 0, 1, null];
 		   var expected_output = "function () { if ((2 < 5) && (5 < 8)) { return 0; } else { return 1; }}()";
                    console.log('input:', ast);                   
-                   console.log('lexed:', parser.ast_to_js(ast));
+                   console.log('output:', parser.ast_to_js(ast));
 		   console.log('\n');
 	           assert.deepEqual(expected_output, parser.ast_to_js(ast));
 	       });
