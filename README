@@ -2,5 +2,17 @@ Schript, pronounced 'skript', is a Scheme to JavaScript translator.
 
 PRE ALPHA
 
-Currently, it prints Scheme mathematical equations as an abstract syntax tree.
+TODO: 
+    - parser
+    - defmacro
 
+IN PROGRESS:
+    - defmacro
+    - quoted symbols including backquotes
+    - lexer
+    
+
+DONE:
+    - if
+    - define
+    - arithmethic and comparison operators

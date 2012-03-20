@@ -6,6 +6,10 @@ function is_backquote(item) {
     return item === '`';
 }
 
+function is_forwardquote(item) {
+    return item === "'";
+}
+
 function is_comma(item) {
     return item === ',';
 }
@@ -16,6 +20,16 @@ function is_lparen(item) {
 
 function is_rparen(item) {
     return item === ')';
+}
+
+function is_forward_quoted(node) {
+    return (node[0] === 'QUOTE');
+}
+function is_backquoted(node) {
+    return (node[0] === 'BACK_QUOTE');
+}
+function is_quoted(node) {
+    return ((is_forward_quoted(node)) || (is_backquoted(node)));
 }
 
 function is_object(test) {
@@ -46,6 +60,7 @@ function is_boolean(test) {
 }
 
 exports.is_backquote = is_backquote;
+exports.is_forwardquote = is_forwardquote;
 exports.is_comma = is_comma;
 exports.is_lparen = is_lparen;
 exports.is_rparen = is_rparen;
@@ -55,4 +70,6 @@ exports.is_array = is_array;
 exports.is_string = is_string;
 exports.is_number = is_number;
 exports.is_function = is_function;
-exports.is_boolean = is_boolean;
+exports.is_quoted = is_quoted;
+exports.is_forward_quoted = is_forward_quoted;
+

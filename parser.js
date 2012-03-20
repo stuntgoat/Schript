@@ -1,6 +1,8 @@
 // parser.js
 // Functions to create an abstract syntax tree from an array of Scheme tokens.
 // exports: parse
+// TODO: 
+
 var predicates = require('./predicates.js');
 var assert = require('assert');
 
@@ -26,8 +28,10 @@ var lambda_2 = ['lambda', [null], ['*', 90, 3, null], null];
 
 // (list 2 4 5)
 var list_1 = ['list', 2, 4, 5, null];
-// eval(cons(2, cons(4, cons(5, null)
 
+
+////////////////////////////////////////////////////////////////////////////////
+// for traversing the AST
 function car(sexp) {
     if (sexp.length) {
 	return sexp[0];
@@ -35,10 +39,9 @@ function car(sexp) {
 	return false;
     }
 }
-
 function cdr(sexp) {
     var cdr_sexp;
-    if (sexp.length > 2) {
+    if (sexp.length >= 2) {
 	cdr_sexp = sexp.slice();
 	cdr_sexp.splice(0, 1);
 	return cdr_sexp;
@@ -46,7 +49,6 @@ function cdr(sexp) {
 	return false;
     }
 }
-
 function cons(exp1, exp2) {
     if (predicates.is_array(exp2)) {
 	exp2.unshift(exp1);
@@ -55,15 +57,17 @@ function cons(exp1, exp2) {
 	return false;
     }
 }
+////////////////////////////////////////////////////////////////////////////////
 
 function ast_to_js(sexp) {
-    // TODO: use is_within_env 
-//    console.log('value passed to ast_to_js:', sexp);
+    // TODO: - use is_within_env instead of a series of ifs
+    //       - lowercase the car(sexp)
+    //       - if an atom or a sexp is quoted ['QUOTE', 9] <= '9 and ['QUOTE', [9, 4, null]] <= '(9 4)
     if (predicates.is_array(sexp)) {
-	
 	if (bindings[car(sexp)]) {
 	    return bindings[car(sexp)](cdr(sexp));
 	} else if (form_handlers[car(sexp)]) {
+	    console.log("calling form handlers with: " + car(sexp) + ' and ' + cdr(sexp));
 	    return form_handlers[car(sexp)](cdr(sexp));
 	} else if (((sexp.length === 2)) && (sexp[1] === null)) {
 	    // a list of one value, not in ENV
@@ -74,6 +78,15 @@ function ast_to_js(sexp) {
 	return sexp;
     }
 }
+
+function scheme_data_to_js(scheme_data) {
+    // return the unevaluated Scheme data as JavaScript data
+    // remove null at the end of Arrays
+    // print quoted identifiers as they are
+    // print Scheme strings as quoted strings
+   
+}
+
 
 function is_within_env(arg) {
     return (bindings[arg] || form_handlers[arg]);
@@ -90,7 +103,10 @@ function list_arguments(arguments) {
     return args_with_commas;
 }
 
-function my_if(cdr_if) {
+function quote() {
+}
+
+function translate_if(cdr_if) {
     var conditional = car(cdr_if);
     var expression = '';
     var fexp = car(cdr(cdr(cdr_if)));
@@ -132,15 +148,50 @@ function define(cdr_define) {
 	add_binding_var(procedure_name, ast_to_js(procedure_expr));
 	return expression + ';';
     }
+    return '';
+};
+
+function translate_cons(cdr_cons) {
+    console.log(arguments);
+    var first = cdr_cons[0];	
+    var first_checked; // check quote status
+    var second = cdr_cons[1];
+    var second_checked; // check quote status
+    console.log('first', first);
+    console.log('second', second);
+    if (predicates.is_quoted(first)) { // eval each argument, unless quoted
+	    first_checked = cdr(first);
+    } else {
+	first_checked = ast_to_js(first);
+    }
+    
+    if (predicates.is_quoted(second)) {
+	console.log('second IS QUOTED', second);
+
+	second_checked = car(cdr(second));
+    } else {
+	second_checked = ast_to_js(second);
+    }
+    if (predicates.is_array(second_checked)) {
+	console.log('second_checked is an ARRAY', second_checked);
+	second_checked.unshift(first_checked);
+	// return the JavaScript representation of Scheme data
+	return second_checked;
+    } else {
+	console.log('second_checked is not an ARRAY', second_checked);
+	// return the JavaScript representation of Scheme data
+	return [first, second];	    
+    }
 }
 
+
 var ENV = {
-    
 };
 
 var form_handlers = {
     define: define,
-    'if': my_if 
+    'if': translate_if,
+    cons: translate_cons
 };
 
 var bindings = {
@@ -154,14 +205,12 @@ var bindings = {
     '<=': generate_compare('<=')
 };
 
-
 function add_binding_procedure(name) {
     // TODO: do not allow rebinding of builtins???
     bindings[name] = local_procedure(name);
 }
 
 function add_binding_var(name, value) {
-    // TODO: do not allow rebinding of builtins???
     bindings[name] = value;
 }
 
@@ -180,7 +229,6 @@ function local_procedure(name) { // takes
 	return function_call;
     };
 }
-
 
 function generate_math_operator(op) {
     return function(args) {
@@ -251,6 +299,15 @@ exports.cons = cons;
 exports.ast_to_js = ast_to_js;
 exports.bindings = bindings;
 exports.form_handlers = form_handlers;
+
+
+// (cons 9 (list 8 3 4 5)) => (9 8 3 4 5) -> [9, 8, 3, 4, 5, null]
+// (cons (list 9 7) (list 8 3 4 5)) => ((9 7) 8 3 4 5) -> [[9, 7, null], 8, 3, 4, 5, null]
+
+// (cons 4 '(9)) =SCHEME> (4 9) -AST> ['cons', 4, ['QUOTE', [9, null]], null] -JS> [4, 9];
+var cons_1 = ['cons', 4, ['QUOTE', [9, null]], null];
+console.log(ast_to_js(cons_1));
+
 
 // // (define foo 2)
 // var define_1 = ['define', 'foo', 2, null];
