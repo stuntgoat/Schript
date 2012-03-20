@@ -96,18 +96,39 @@ suite('Parser.js',  // These tests are not for the parser !!!
           test('Procedure: define: variable assignment', 
                function (){
 		   var ast = ['define', 'foo', 2, null];
-		   var expected_output = "var foo = 2;"
+		   var expected_output = "var foo = 2;";
 	           
                    console.log('input:', ast);                   
                    console.log('lexed:', parser.ast_to_js(ast));
 		   console.log('\n');
 	           assert.deepEqual(expected_output, parser.ast_to_js(ast));
 	       });
+
           test('Procedure: define: function assignment', 
                function (){
 		   var ast = ['define', ['sqr_me', 'x', 'y', 'z', null], ['*', 'x', 'y', 'z', null], null];
 		   var expected_output = "var sqr_me = function (x, y, z) {return (x*y*z);};";
 	           
+                   console.log('input:', ast);                   
+                   console.log('lexed:', parser.ast_to_js(ast));
+		   console.log('\n');
+	           assert.deepEqual(expected_output, parser.ast_to_js(ast));
+	       });
+
+          test('Procedure: if: return expression', 
+               function (){
+		   var ast = ['if', ['<', 2, 5, 8, null], ['+', 9, 9, null], ['-', 9, 9, null], null];
+		   var expected_output = "function () { if ((2 < 5) && (5 < 8)) { return (9+9); } else { return (9-9); }}()";
+                   console.log('input:', ast);                   
+                   console.log('lexed:', parser.ast_to_js(ast));
+		   console.log('\n');
+	           assert.deepEqual(expected_output, parser.ast_to_js(ast));
+	       });
+
+          test('Procedure: if: return value', 
+               function (){
+		   var ast = ['if', ['<', 2, 5, 8, null], 0, 1, null];
+		   var expected_output = "function () { if ((2 < 5) && (5 < 8)) { return 0; } else { return 1; }}()";
                    console.log('input:', ast);                   
                    console.log('lexed:', parser.ast_to_js(ast));
 		   console.log('\n');

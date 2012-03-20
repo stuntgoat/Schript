@@ -66,7 +66,7 @@ function ast_to_js(sexp) {
 	    return form_handlers[car(sexp)](cdr(sexp));
 	}
 	throw new Error('in ' + sexp + ' ' + car(sexp) + ' not supported');
-    } else {
+    } else { // not an expression so return the value
 	return sexp;
     }
 }
@@ -86,27 +86,28 @@ function list_arguments(arguments) {
     return args_with_commas;
 }
 
-
-// (if (< 2 5 8) 0 1)
-var if_1 = ['if', ['<', 2, 5, 8, null], 0, 1, null];
-// if = if eval(cadr if_node), eval(caddr), else cadddr.
-
+function my_if(cdr_if) {
+    var conditional = car(cdr_if);
+    var expression = '';
+    var fexp = car(cdr(cdr(cdr_if)));
+    var texp = car(cdr(cdr_if));
+    // console.log('conditional', conditional);console.log('true expr', texp); console.log('false expr', fexp);
+    expression += 'function () { if (' + ast_to_js(conditional) + ') { return ' + ast_to_js(texp) + '; }';
+    expression += ' else { return ' + ast_to_js(fexp) + '; }}()';
+    return expression;
+}
 
 function define(cdr_define) {
     var expression = '';
     var procedure_args;
     var procedure_expr;
     var procedure_name;
-
     // variable and expression/value or (function arguments) expression
     if (predicates.is_array(car(cdr_define))) {
 	// we are defining a procedure that takes args
 	procedure_name = car(car(cdr_define));
 	procedure_args = cdr(car(cdr_define));
 	procedure_expr = car(cdr(cdr_define));
-//	console.log('name', procedure_name);
-//	console.log('args', procedure_args);
-//	console.log('expression', procedure_expr);
 	expression += 'var ' + procedure_name + ' = ';
 	expression += 'function ' +'(' + list_arguments(procedure_args) + ') {';
 	expression += 'return ' + ast_to_js(procedure_expr) + ';';
@@ -127,10 +128,9 @@ function define(cdr_define) {
     }
 }
 
-
-
 var form_handlers = {
-    define: define
+    define: define,
+    'if': my_if 
 }
 
 var bindings = {
@@ -152,7 +152,6 @@ function generate_math_operator(op) {
         var last;
         var statement = '';
         var tmp;        
-
 	first = args[0];
 	statement += predicates.is_array(first) ? ast_to_js(first) : first;
 	for (i=1; i<args.length; i++) {
@@ -199,7 +198,6 @@ function generate_compare(op) {
 	    if (i < arg_length - 2) {
                 statement += ' && ';
             }
-
         } while (i < arg_length - 1)
         return statement;
     };
@@ -214,11 +212,13 @@ exports.cdr = cdr;
 exports.cons = cons;
 exports.ast_to_js = ast_to_js;
 
+// // (define foo 2)
+// var define_1 = ['define', 'foo', 2, null];
+// console.log(ast_to_js(define_1));
 
-// (define foo 2)
-var define_1 = ['define', 'foo', 2, null];
-console.log(ast_to_js(define_1));
+// // (define (sqr_me x) (* x x))
+// var define_2 = ['define', ['sqr_me', 'x', 'y', 'z', null], ['*', 'x', 'y', null], null];
+// console.log(ast_to_js(define_2));
 
-// (define (sqr_me x) (* x x))
-var define_2 = ['define', ['sqr_me', 'x', 'y', 'z', null], ['*', 'x', 'y', null], null];
-console.log(ast_to_js(define_2));
+// var if_1 = ['if', ['<', 2, 5, 8, null], 0, 1, null];
+// console.log(my_if(cdr(if_1)));
