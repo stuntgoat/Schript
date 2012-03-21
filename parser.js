@@ -67,7 +67,7 @@ function ast_to_js(sexp) {
 	if (bindings[car(sexp)]) {
 	    return bindings[car(sexp)](cdr(sexp));
 	} else if (form_handlers[car(sexp)]) {
-	    console.log("calling form handlers with: " + car(sexp) + ' and ' + cdr(sexp));
+//	    console.log("calling form handlers with: " + car(sexp) + ' and ' + cdr(sexp));
 	    return form_handlers[car(sexp)](cdr(sexp));
 	} else if (((sexp.length === 2)) && (sexp[1] === null)) {
 	    // a list of one value, not in ENV
@@ -79,12 +79,34 @@ function ast_to_js(sexp) {
     }
 }
 
+function unquote_symbols(string) {
+    var expression = '';
+    var current_stack = [];
+    var i;
+    var split_string = string.split('');
+    console.log(split_string);
+    for (i=0; i<split_string.length; i++) {
+	// if item has quotes, remove them or leave them based on 2 conditions.
+	// use predicates
+	
+
+    }
+
+
+
+    return expression;
+}
+
 function scheme_data_to_js(scheme_data) {
     // return the unevaluated Scheme data as JavaScript data
-    // remove null at the end of Arrays
-    // print quoted identifiers as they are
+    // print identifiers as they are
+    // TODO: print quoted identifiers
     // print Scheme strings as quoted strings
-   
+    
+    return JSON.stringify(scheme_data);
+    // parse out the quotes unless the string is quoted
+
+//    return scheme_data;
 }
 
 
@@ -152,38 +174,43 @@ function define(cdr_define) {
 };
 
 function translate_cons(cdr_cons) {
-    console.log(arguments);
     var first = cdr_cons[0];	
     var first_checked; // check quote status
     var second = cdr_cons[1];
     var second_checked; // check quote status
-    console.log('first', first);
-    console.log('second', second);
+//    console.log('first', first);
+  //  console.log('second', second);
     if (predicates.is_quoted(first)) { // eval each argument, unless quoted
-	    first_checked = cdr(first);
+	if (predicates.is_array(cdr(first))) {
+	    first_checked = car(cdr(first));	    
+	} else {
+	    first_checked = cdr(first);	    
+	}
     } else {
 	first_checked = ast_to_js(first);
     }
     
     if (predicates.is_quoted(second)) {
-	console.log('second IS QUOTED', second);
-
-	second_checked = car(cdr(second));
+//	console.log('second IS QUOTED', second);
+	if (predicates.is_array(cdr(second))) {
+	    second_checked = car(cdr(second));	    
+	} else {
+	    second_checked = cdr(second);	    
+	}
     } else {
 	second_checked = ast_to_js(second);
     }
     if (predicates.is_array(second_checked)) {
-	console.log('second_checked is an ARRAY', second_checked);
+//	console.log('second_checked is an ARRAY', second_checked);
 	second_checked.unshift(first_checked);
 	// return the JavaScript representation of Scheme data
-	return second_checked;
+	return scheme_data_to_js(second_checked);
     } else {
-	console.log('second_checked is not an ARRAY', second_checked);
+//	console.log('second_checked is not an ARRAY', second_checked);
 	// return the JavaScript representation of Scheme data
-	return [first, second];	    
+	return scheme_data_to_js([first, second]);	    
     }
 }
-
 
 var ENV = {
 };
@@ -300,22 +327,30 @@ exports.ast_to_js = ast_to_js;
 exports.bindings = bindings;
 exports.form_handlers = form_handlers;
 
-
-// (cons 9 (list 8 3 4 5)) => (9 8 3 4 5) -> [9, 8, 3, 4, 5, null]
 // (cons (list 9 7) (list 8 3 4 5)) => ((9 7) 8 3 4 5) -> [[9, 7, null], 8, 3, 4, 5, null]
 
 // (cons 4 '(9)) =SCHEME> (4 9) -AST> ['cons', 4, ['QUOTE', [9, null]], null] -JS> [4, 9];
 var cons_1 = ['cons', 4, ['QUOTE', [9, null]], null];
-console.log(ast_to_js(cons_1));
+console.log("scheme: (cons 4 '(9))");
+console.log("AST: ", cons_1);
+console.log("translation: ", ast_to_js(cons_1));
 
+console.log('\n');
+var cons_2 = ['cons', 9, 0, null];
+console.log("(cons 9 0)");
+console.log("AST: ", cons_2);
+console.log("translation: ", ast_to_js(cons_2));
 
-// // (define foo 2)
-// var define_1 = ['define', 'foo', 2, null];
-// console.log(ast_to_js(define_1));
+console.log('\n');
+var cons_3 = ['cons', ['QUOTE', 'hammer'], ['QUOTE', [0, 4, null]], null];
+console.log("(cons 'hammer '(0 4))");
+console.log("AST: ", cons_3);
+console.log("translation: ", ast_to_js(cons_3));
 
-// // (define (sqr_me x) (* x x))
-// var define_2 = ['define', ['sqr_me', 'x', 'y', 'z', null], ['*', 'x', 'y', null], null];
-// console.log(ast_to_js(define_2));
+console.log('\n');
+var cons_4 = ['cons', ['QUOTE', '"hammer"'], ['QUOTE', [0, 4, null]], null];
+console.log("(cons 'hammer '(0 4))");
+console.log("AST: ", cons_4);
+console.log("translation: ", ast_to_js(cons_4));
 
-// var if_1 = ['if', ['<', 2, 5, 8, null], 0, 1, null];
-// console.log(my_if(cdr(if_1)));
+// alex grey

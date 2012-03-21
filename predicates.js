@@ -59,6 +59,20 @@ function is_boolean(test) {
     return tester.call(test) === '[object Boolean]';
 }
 
+function is_quoted_twice(string) {
+    var split_string = string.split('');
+    // check for 2 quotes    
+    var tmp_stack = [];
+    var i;
+    for (i=0; i<split_string.length; i++) {
+	
+	if ((split_string[i] == '"') && (split_string[i+1] == "'")) {
+	    
+	}
+    }
+
+}
+
 exports.is_backquote = is_backquote;
 exports.is_forwardquote = is_forwardquote;
 exports.is_comma = is_comma;
