@@ -60,21 +60,52 @@ function is_boolean(test) {
 }
 
 function is_quoted_twice(string) {
-    var split_string = string.split('');
-    // check for 2 quotes    
-    var tmp_stack = [];
-    var i;
-    for (i=0; i<split_string.length; i++) {
-	
-	if ((split_string[i] == '"') && (split_string[i+1] == "'")) {
-	    
-	}
+    // check for two sets of quotes at the beginning and ending of a string
+    var beginning = false;
+    var ending = false;
+    var quote_test = /(\'\")|(\"\')|(\"\")|(\'\')/g;
+    string.replace(quote_test, 
+		   function () {
+		       if (arguments[arguments.length-2] == 0) {
+			   beginning = true;	   
+		       }
+		       if (arguments[arguments.length - 1].length - 2 == arguments[arguments.length - 1]){
+			   ending = true;
+		       }
+		   });
+    if ((beginning == true) && (ending == true)) {
+	return true;
+    } else {
+	return false;
     }
-
 }
+
+function is_quoted_once(string) {
+    // check for a single quote( either ' or " ) at the beginning and end of a string
+    var quote_test = /(\')|(\")/g;
+    var beginning = false;
+    var ending = false;
+    string.replace(quote_test, 
+		   function () {
+		       if (arguments[arguments.length-2] == 0) {
+			   beginning = true;	   
+		       }
+		       if (arguments[arguments.length - 1].length - 2 == arguments[arguments.length -1]){
+			   ending = true;
+		       }
+		   });
+    if ((beginning == true) && (ending == true)) {
+	return true;
+    } else {
+	return false;
+    }
+}
+
 
 exports.is_backquote = is_backquote;
 exports.is_forwardquote = is_forwardquote;
+exports.is_quoted_twice = is_quoted_twice;
+exports.is_quoted_once = is_quoted_once;
 exports.is_comma = is_comma;
 exports.is_lparen = is_lparen;
 exports.is_rparen = is_rparen;
@@ -87,3 +118,19 @@ exports.is_function = is_function;
 exports.is_quoted = is_quoted;
 exports.is_forward_quoted = is_forward_quoted;
 
+
+// console.log("given: ", '\""hammer"\"'); 
+// console.log(double_to_single_quoted('"hammer"'));
+
+// console.log("given: ", '"\"hammer"\"'); 
+// console.log(double_to_single_quoted('"hammer"'));
+
+// console.log("given: ", '"\"hammer\""'); 
+// console.log(double_to_single_quoted('"hammer"'));
+
+
+// console.log("given: ", '"hammer"'); 
+// console.log(single_to_none('"hammer"'));
+
+// console.log("given: ", "'hammer'"); 
+// console.log(single_to_none("'hammer'"));

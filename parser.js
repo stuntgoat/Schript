@@ -84,31 +84,49 @@ function unquote_symbols(string) {
     var current_stack = [];
     var i;
     var split_string = string.split('');
-    console.log(split_string);
+
     for (i=0; i<split_string.length; i++) {
 	// if item has quotes, remove them or leave them based on 2 conditions.
 	// use predicates
-	
-
     }
-
-
-
     return expression;
 }
 
+////////////////////////////////////////////////////////////////////////////////
 function scheme_data_to_js(scheme_data) {
     // return the unevaluated Scheme data as JavaScript data
     // print identifiers as they are
     // TODO: print quoted identifiers
     // print Scheme strings as quoted strings
+    // recursively traverse tree and unquote strings for JavaScript representation after JSON.stringify is called
+    var i;
+    var output = '[';
+    var tmp = [];
+    for (i=0; i<scheme_data.length; i++) {
+	if (predicates.is_array(scheme_data[i])) {
+	    tmp.push(scheme_data_to_js(scheme_data[i]));
+	} else if ( (i == (scheme_data.length - 1)) && predicates.is_null(scheme_data[i])) {
+	    tmp.push('null');
+	} else {
+	    if (predicates.is_quoted(scheme_data[i])) {
+		tmp.push(scheme_data[i]);
+	    } else {
+		tmp.push(scheme_data[i].toString());		
+	    }
+
+	}
+    }
+
+    output += tmp.join(",");
+    output += "]";
+    return output;
     
-    return JSON.stringify(scheme_data);
-    // parse out the quotes unless the string is quoted
+    // parse out the quotes unless the string is quoted. That is,
+    // if a string is quoted with one quote on each end, remove them because
+    // this string is not meant to be quoted- it is meant to be a symbol ( a variable in ENV )
+    
 
-//    return scheme_data;
-}
-
+};
 
 function is_within_env(arg) {
     return (bindings[arg] || form_handlers[arg]);
@@ -126,6 +144,7 @@ function list_arguments(arguments) {
 }
 
 function quote() {
+
 }
 
 function translate_if(cdr_if) {
@@ -138,7 +157,7 @@ function translate_if(cdr_if) {
     expression += ' else { return ' + ast_to_js(fexp) + '; }}()';
     return expression;
 }
-
+				   
 function define(cdr_define) {
     var expression = '';
     var procedure_args;
@@ -178,8 +197,7 @@ function translate_cons(cdr_cons) {
     var first_checked; // check quote status
     var second = cdr_cons[1];
     var second_checked; // check quote status
-//    console.log('first', first);
-  //  console.log('second', second);
+
     if (predicates.is_quoted(first)) { // eval each argument, unless quoted
 	if (predicates.is_array(cdr(first))) {
 	    first_checked = car(cdr(first));	    
@@ -191,7 +209,7 @@ function translate_cons(cdr_cons) {
     }
     
     if (predicates.is_quoted(second)) {
-//	console.log('second IS QUOTED', second);
+
 	if (predicates.is_array(cdr(second))) {
 	    second_checked = car(cdr(second));	    
 	} else {
@@ -201,12 +219,11 @@ function translate_cons(cdr_cons) {
 	second_checked = ast_to_js(second);
     }
     if (predicates.is_array(second_checked)) {
-//	console.log('second_checked is an ARRAY', second_checked);
+
 	second_checked.unshift(first_checked);
 	// return the JavaScript representation of Scheme data
 	return scheme_data_to_js(second_checked);
     } else {
-//	console.log('second_checked is not an ARRAY', second_checked);
 	// return the JavaScript representation of Scheme data
 	return scheme_data_to_js([first, second]);	    
     }
@@ -241,7 +258,7 @@ function add_binding_var(name, value) {
     bindings[name] = value;
 }
 
-function local_procedure(name) { // takes 
+function local_procedure(name) { 
     return function() {
 	var function_call = '';
 	var i = 0;
@@ -316,6 +333,17 @@ function generate_compare(op) {
     };
 }
 
+function double_to_single_quoted(string) {
+    // replaces doubly quoted strings ( ie. '"\"string\""' becomes '"string"'
+    var quote_test = /(\'\")|(\"\')|(\"\")|(\'\')/g;
+    return string.replace(quote_test, '"');
+}
+
+function single_to_none(string) {
+    var quote_test = /(\')|(\")/g;
+    return string.replace(quote_test, '');
+}
+
 // (+ 5 2 (- 3 6 8))
 var arith_2 = ['+', 5, 2, ['-', 3, 6, 8, null], null];
 var arith_3 = ['<', 1, 2, ['+', 3, 4, null], null];
@@ -330,27 +358,24 @@ exports.form_handlers = form_handlers;
 // (cons (list 9 7) (list 8 3 4 5)) => ((9 7) 8 3 4 5) -> [[9, 7, null], 8, 3, 4, 5, null]
 
 // (cons 4 '(9)) =SCHEME> (4 9) -AST> ['cons', 4, ['QUOTE', [9, null]], null] -JS> [4, 9];
-var cons_1 = ['cons', 4, ['QUOTE', [9, null]], null];
-console.log("scheme: (cons 4 '(9))");
-console.log("AST: ", cons_1);
-console.log("translation: ", ast_to_js(cons_1));
+// var cons_1 = ['cons', 4, ['QUOTE', [9, null]], null];
+// console.log("scheme: (cons 4 '(9))");
+// console.log("AST: ", cons_1);
+// console.log("translation: ", ast_to_js(cons_1));
 
-console.log('\n');
-var cons_2 = ['cons', 9, 0, null];
-console.log("(cons 9 0)");
-console.log("AST: ", cons_2);
-console.log("translation: ", ast_to_js(cons_2));
+// console.log('\n');
+// var cons_2 = ['cons', 9, 0, null];
+// console.log("(cons 9 0)");
+// console.log("AST: ", cons_2);
+// console.log("translation: ", ast_to_js(cons_2));
 
-console.log('\n');
-var cons_3 = ['cons', ['QUOTE', 'hammer'], ['QUOTE', [0, 4, null]], null];
-console.log("(cons 'hammer '(0 4))");
-console.log("AST: ", cons_3);
-console.log("translation: ", ast_to_js(cons_3));
+// console.log('\n');
+// var cons_3 = ['cons', ['QUOTE', 'hammer'], ['QUOTE', [0, 4, null]], null];
 
-console.log('\n');
-var cons_4 = ['cons', ['QUOTE', '"hammer"'], ['QUOTE', [0, 4, null]], null];
-console.log("(cons 'hammer '(0 4))");
-console.log("AST: ", cons_4);
-console.log("translation: ", ast_to_js(cons_4));
+// console.log("AST: ", cons_3);
+// console.log("translation: ", ast_to_js(cons_3));
 
-// alex grey
+// console.log('\n');
+// var cons_4 = ['cons', '"hammer"', ['QUOTE', [0, 4, null]], null];
+// console.log("AST: ", cons_4);
+// console.log("translation: ", ast_to_js(cons_4));

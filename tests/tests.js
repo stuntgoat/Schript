@@ -4,7 +4,31 @@ var assert = require('/usr/local/lib/node_modules/chai').assert;
 
 var lexer = require("../lexer.js");
 var parser = require("../parser.js");
-suite('Lexer.js', 
+var predicates = require("../predicates.js");
+
+suite('predicates.js', 
+      function() {
+          test('is_quoted_twice',
+               function (){
+		   var expression = '"\"doubles\""';
+                   console.log('input:', expression);                   
+                   console.log('output:', predicates.is_quoted_twice(expression));
+		   console.log('\n');
+	           assert.deepEqual(true, predicates.is_quoted_twice(expression));
+	       });},
+
+      function() {
+          test('is_quoted_once',
+               function (){
+		   var expression = '"single-ish"';
+                   console.log('input:', expression);                   
+                   console.log('output:', predicates.is_quoted_once(expression));
+		   console.log('\n');
+	           assert.deepEqual(true, predicates.is_quoted_once(expression));
+	       });
+      });
+
+suite('lexer.js', 
       function(){
           test('Break tokens on spaces and include negative numbers', 
                function (){
@@ -143,6 +167,8 @@ suite('Parser.js',  // These tests are not for the parser !!!
 	       });
 
       });
+
+
 
 // suite('Macros: ', 
 //       function () {
