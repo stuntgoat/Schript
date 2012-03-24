@@ -26,6 +26,18 @@ suite('predicates.js',
 		   console.log('\n');
 	           assert.deepEqual(true, predicates.is_quoted_once(expression));
 	       });
+      },
+
+      function() {
+          test('is_quoted_once should ',
+               function (){
+		   var expression = '"single\"-ish"';
+                   console.log('input:', expression);                   
+                   console.log('output:', predicates.is_quoted_once(expression));
+		   console.log('\n');
+	           assert.deepEqual(true, predicates.is_quoted_once(expression));
+	       });
+
       });
 
 suite('lexer.js', 
@@ -165,6 +177,21 @@ suite('Parser.js',  // These tests are not for the parser !!!
 		   console.log('\n');
 	           assert.deepEqual(expected_output, parser.ast_to_js(ast));
 	       });
+
+          test('procedure: cons: string to list', 
+               function (){
+		   console.log("Scheme : (cons \"hammer\" '(0 4))");
+		   var input = ['cons', '\"hammer\"', ['QUOTE', [0, 4, null]], null];
+		   var expected_ouput = '["hammer",0,4,null]';
+		   console.log("input : ", input);
+		   console.log("output: ", parser.ast_to_js(input));
+		   console.log("expect: ", parser.ast_to_js(input));
+		   console.log("expec2: ", parser.ast_to_js(input));
+	           assert.deepEqual(expected_ouput, parser.ast_to_js(input));
+	       });
+
+
+
 
       });
 

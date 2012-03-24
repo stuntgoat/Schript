@@ -39,6 +39,7 @@ function car(sexp) {
 	return false;
     }
 }
+
 function cdr(sexp) {
     var cdr_sexp;
     if (sexp.length >= 2) {
@@ -50,24 +51,26 @@ function cdr(sexp) {
     }
 }
 function cons(exp1, exp2) {
+    // returns a new copy of the consed pair
+    var new_exp;
     if (predicates.is_array(exp2)) {
-	exp2.unshift(exp1);
-	return exp2;
+	new_exp = exp2.slice();
+	new_exp.unshift(exp1);
+	return new_exp;
     } else {
 	return false;
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
-
 function ast_to_js(sexp) {
     // TODO: - use is_within_env instead of a series of ifs
     //       - lowercase the car(sexp)
     //       - if an atom or a sexp is quoted ['QUOTE', 9] <= '9 and ['QUOTE', [9, 4, null]] <= '(9 4)
+    console.log('AST_TO_JS:', sexp);
     if (predicates.is_array(sexp)) {
 	if (bindings[car(sexp)]) {
 	    return bindings[car(sexp)](cdr(sexp));
 	} else if (form_handlers[car(sexp)]) {
-//	    console.log("calling form handlers with: " + car(sexp) + ' and ' + cdr(sexp));
 	    return form_handlers[car(sexp)](cdr(sexp));
 	} else if (((sexp.length === 2)) && (sexp[1] === null)) {
 	    // a list of one value, not in ENV
@@ -75,6 +78,7 @@ function ast_to_js(sexp) {
 	}
 	throw new Error('in ' + sexp + ' ' + car(sexp) + ' not supported');
     } else { // not an expression so return the value
+	console.log("NOT AN EXPRESSION: ", sexp);
 	return sexp;
     }
 }
@@ -84,7 +88,6 @@ function unquote_symbols(string) {
     var current_stack = [];
     var i;
     var split_string = string.split('');
-
     for (i=0; i<split_string.length; i++) {
 	// if item has quotes, remove them or leave them based on 2 conditions.
 	// use predicates
@@ -113,10 +116,8 @@ function scheme_data_to_js(scheme_data) {
 	    } else {
 		tmp.push(scheme_data[i].toString());		
 	    }
-
 	}
     }
-
     output += tmp.join(",");
     output += "]";
     return output;
@@ -193,13 +194,17 @@ function define(cdr_define) {
 };
 
 function translate_cons(cdr_cons) {
-    var first = cdr_cons[0];	
+    console.log('cdr_cons @ beginning of translate_cons: ', cdr_cons);
+//    var first = cdr_cons[0];
+    var first = car(cdr_cons);	
     var first_checked; // check quote status
-    var second = cdr_cons[1];
+    //     var second = cdr_cons[1];
+    var second = car(cdr(cdr_cons)); 
     var second_checked; // check quote status
+    var result;
 
     if (predicates.is_quoted(first)) { // eval each argument, unless quoted
-	if (predicates.is_array(cdr(first))) {
+	if (predicates.is_array(cdr(first))) { 
 	    first_checked = car(cdr(first));	    
 	} else {
 	    first_checked = cdr(first);	    
@@ -207,24 +212,24 @@ function translate_cons(cdr_cons) {
     } else {
 	first_checked = ast_to_js(first);
     }
-    
     if (predicates.is_quoted(second)) {
-
+	console.log("second is quoted", cdr_cons);
 	if (predicates.is_array(cdr(second))) {
+
 	    second_checked = car(cdr(second));	    
+	    console.log("cdr(second) is array", cdr_cons);
 	} else {
 	    second_checked = cdr(second);	    
+	    console.log("cdr(second) is NOT array", cdr_cons);
 	}
     } else {
+	console.log("second is NOT quoted", cdr_cons);
 	second_checked = ast_to_js(second);
     }
     if (predicates.is_array(second_checked)) {
-
-	second_checked.unshift(first_checked);
-	// return the JavaScript representation of Scheme data
-	return scheme_data_to_js(second_checked);
+	result = cons(first_checked, second_checked);
+	return scheme_data_to_js(result);
     } else {
-	// return the JavaScript representation of Scheme data
 	return scheme_data_to_js([first, second]);	    
     }
 }
@@ -374,8 +379,17 @@ exports.form_handlers = form_handlers;
 
 // console.log("AST: ", cons_3);
 // console.log("translation: ", ast_to_js(cons_3));
+// console.log("translation 2: ", ast_to_js(cons_3));
+// // console.log('\n');
+// // console.log("example Scheme: (cons \"hammer\" '(0 4))");
+// // var cons_4 = ['cons', '"hammer"', ['QUOTE', [0, 4, null]], null];
+// // console.log("AST: ", cons_4);
+// // console.log("translation: ", ast_to_js(cons_4));
 
-// console.log('\n');
-// var cons_4 = ['cons', '"hammer"', ['QUOTE', [0, 4, null]], null];
-// console.log("AST: ", cons_4);
-// console.log("translation: ", ast_to_js(cons_4));
+
+console.log('\n');
+console.log("example Scheme: (cons \"hammer\" '(0 4))");
+var cons_4 = ['cons', '"hammer"', ['QUOTE', [0, 4, null]], null];
+console.log("AST: ", cons_4);
+console.log("translation: ", ast_to_js(cons_4));
+console.log("translation 2: ", ast_to_js(cons_4));

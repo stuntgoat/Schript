@@ -63,17 +63,21 @@ function is_quoted_twice(string) {
     // check for two sets of quotes at the beginning and ending of a string
     var beginning = false;
     var ending = false;
+    var beginning_group;    
+    var ending_group;    
     var quote_test = /(\'\")|(\"\')|(\"\")|(\'\')/g;
     string.replace(quote_test, 
 		   function () {
 		       if (arguments[arguments.length-2] == 0) {
+			   // acquire beginning group
 			   beginning = true;	   
 		       }
-		       if (arguments[arguments.length - 1].length - 2 == arguments[arguments.length - 1]){
+		       if (arguments[arguments.length - 1].length - 2 == arguments[arguments.length - 2]){
+			   // acquire end group
 			   ending = true;
 		       }
 		   });
-    if ((beginning == true) && (ending == true)) {
+    if ((beginning == true) && (ending == true)) { // check that groups match, if they don't match: throw error
 	return true;
     } else {
 	return false;
