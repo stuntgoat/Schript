@@ -130,15 +130,28 @@ suite('Parser.js',  // These tests are not for the parser !!!
 		   console.log('\n');
 	           assert.deepEqual(expected_output, parser.ast_to_js(ast));
 	       });
+
           test('Procedure: define: variable assignment', 
                function (){
 		   var ast = ['define', 'foo', 2, null];
 		   var expected_output = "var foo = 2;";
                    console.log('input:', ast);                   
                    console.log('output 1:', parser.ast_to_js(ast));
-		   console.log('output 2: ' + "parser.bindings['foo'] = " + parser.bindings['foo']);
 		   console.log('\n');
 		   assert.deepEqual (2, parser.bindings['foo']);
+	           assert.deepEqual(expected_output, parser.ast_to_js(ast));
+		   delete parser.bindings['foo'];
+	       });
+
+          test('Procedure: define: variable assignment to string', 
+               function (){
+		   var ast = ['define', 'foo', '"ham"', null];
+		   var expected_output = 'var foo = "ham";';
+                   console.log('input:', ast);                   
+                   console.log('output 1:', parser.ast_to_js(ast));
+                   console.log('output 2:', parser.ast_to_js(ast));
+		   console.log('\n');
+		   assert.deepEqual ('"ham"', parser.bindings['foo']);
 	           assert.deepEqual(expected_output, parser.ast_to_js(ast));
 		   delete parser.bindings['foo'];
 	       });
@@ -185,17 +198,49 @@ suite('Parser.js',  // These tests are not for the parser !!!
 		   var expected_ouput = '["hammer",0,4,null]';
 		   console.log("input : ", input);
 		   console.log("output: ", parser.ast_to_js(input));
-		   console.log("expect: ", parser.ast_to_js(input));
-		   console.log("expec2: ", parser.ast_to_js(input));
 	           assert.deepEqual(expected_ouput, parser.ast_to_js(input));
 	       });
 
+	  test('procedure: cons: quoted symbol to list', 
+               function (){
+		   console.log("Scheme : (cons \"hammer\" '(0 4))");
+		   var input = ['cons', 'hammer', ['QUOTE', [0, 4, null]], null];
+		   var expected_ouput = '[hammer,0,4,null]';
+		   console.log("input : ", input);
+		   console.log("output: ", parser.ast_to_js(input));
+	           assert.deepEqual(expected_ouput, parser.ast_to_js(input));
+	       });
 
+	  test('procedure: cons: quoted list to quoted list', 
+               function () {
+		   console.log("Scheme : (cons \'(list 8 9) \'(0 4))");
+		   var input = ['cons', ['QUOTE', ['list', 8, 9, null]], ['QUOTE', [0, 4, null]], null];
+		   var expected_ouput = '[[list,8,9,null],0,4,null]';
+		   console.log("input : ", input);
+		   console.log("output: ", parser.ast_to_js(input));
+	           assert.deepEqual(expected_ouput, parser.ast_to_js(input));
+	       });
+	  test('procedure: cons: evaled list to quoted list', 
+               function () {
+		   console.log("Scheme : (cons (cons 8 \'(9)) \'(0 4))");
+		   var input = ['cons', ['cons', 8, ['QUOTE',[9, null]]], ['QUOTE', [0, 4, null]], null];
+		   var expected_ouput = '[[8,9,null],0,4,null]';
+		   console.log("input : ", input);
+		   console.log("output: ", parser.ast_to_js(input));
+	           assert.deepEqual(expected_ouput, parser.ast_to_js(input));
+	       });
 
+	  test('procedure: cons: dotted pair to list', 
+               function () {
+		   console.log("Scheme : (cons '(8 . 9) '(4))");
+		   var input = ['cons', ['QUOTE', [8, 9]], ['QUOTE', [4, null]], null];
+		   var expected_ouput = '[[8,9],4,null]';
+		   console.log("input : ", input);
+		   console.log("output: ", parser.ast_to_js(input));
+	           assert.deepEqual(expected_ouput, parser.ast_to_js(input));
+	       });
 
       });
-
-
 
 // suite('Macros: ', 
 //       function () {
