@@ -240,6 +240,26 @@ suite('Parser.js',  // These tests are not for the parser !!!
 	           assert.deepEqual(expected_ouput, parser.ast_to_js(input));
 	       });
 
+	  test('procedure: backquoted s-expressions: single escaped variable', 
+               function () {
+		   console.log("Scheme : `(define a ,x) // x=8, in `bindings` ENV");
+		   var input = ['define', 'a', ['COMMA', 'x'], null];
+		   var expected_ouput = ['define', 'a', 8, null];
+		   console.log("input : ", input);
+		   console.log("output: ", parser.expandbq(input));
+	           assert.deepEqual(expected_ouput, parser.expandbq(input)); 
+	       });
+
+	  test('procedure: backquoted s-expressions: escaped expression and escaped var', 
+               function () {
+		   console.log("Scheme : `(if (< ,x ,(+ y 3)) 1 0) // x=8, y=92 in `bindings` ENV");
+		   var input = ['if', ['<', ['COMMA', 'x'], ['COMMA', ['+', 'y', 3, null]], null], 1, 0, null];
+		   var expected_ouput = ['if', ['<', 8, 95, null], 1, 0, null];
+		   console.log("input : ", input);
+		   console.log("output: ", parser.expandbq(input));
+	           assert.deepEqual(expected_ouput, parser.expandbq(input)); 
+	       });
+
       });
 
 // suite('Macros: ', 

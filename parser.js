@@ -61,6 +61,7 @@ function cons(exp1, exp2) {
 	return false;
     }
 }
+
 ////////////////////////////////////////////////////////////////////////////////
 function ast_to_js(sexp) {
     // TODO: - use is_within_env instead of a series of ifs
@@ -68,6 +69,7 @@ function ast_to_js(sexp) {
     //       - if an atom or a sexp is quoted ['QUOTE', 9] <= '9 and ['QUOTE', [9, 4, null]] <= '(9 4)
     if (predicates.is_array(sexp)) {
 	if (bindings[car(sexp)]) {
+	    console.log('RETURNING BINDINGS CALL', sexp);
 	    return bindings[car(sexp)](cdr(sexp));
 	} else if (form_handlers[car(sexp)]) {
 	    return form_handlers[car(sexp)](cdr(sexp));
@@ -75,9 +77,12 @@ function ast_to_js(sexp) {
 	    // a list of one value, not in ENV
 	    return ast_to_js(car(sexp));
 	}
+	
 	throw new Error('in ' + sexp + ' ' + car(sexp) + ' not supported');
-    } else { // not an expression so return the value
-	return sexp;
+    } else if (bindings[sexp]) { 
+	return bindings[sexp]; // return the bound value
+    } else {
+	return sexp; // not in bindings, so return the value
     }
 }
 
@@ -119,12 +124,9 @@ function scheme_data_to_js(scheme_data) {
     output += tmp.join(",");
     output += "]";
     return output;
-    
     // parse out the quotes unless the string is quoted. That is,
     // if a string is quoted with one quote on each end, remove them because
     // this string is not meant to be quoted- it is meant to be a symbol ( a variable in ENV )
-    
-
 };
 
 function is_within_env(arg) {
@@ -143,7 +145,6 @@ function list_arguments(arguments) {
 }
 
 function quote() {
-
 }
 
 function translate_if(cdr_if) {
@@ -197,7 +198,6 @@ function translate_cons(cdr_cons) {
     var second = car(cdr(cdr_cons)); 
     var second_checked; // check quote status
     var result;
-
     if (predicates.is_quoted(first)) { // eval each argument, unless quoted
 	if (predicates.is_array(cdr(first))) { 
 	    first_checked = car(cdr(first));	    
@@ -226,13 +226,16 @@ function translate_cons(cdr_cons) {
 }
 
 var ENV = {
+    // bindings for debugging backquote behavior
+    x: 8,
+    y: 92, 
+    z: "cloud"
 };
 
 var form_handlers = {
     define: define,
     'if': translate_if,
-    cons: translate_cons, // cons scheme to Javascript. cons() works on the AST but translate_cons is for returning scheme data
-
+    cons: translate_cons // cons scheme to Javascript. cons() works on the AST but translate_cons is for returning scheme data
 };
 
 var bindings = {
@@ -243,7 +246,9 @@ var bindings = {
     '<': generate_compare('<'),
     '>': generate_compare('>'),
     '>=': generate_compare('>='),
-    '<=': generate_compare('<=')
+    '<=': generate_compare('<='),
+
+
 };
 
 function add_binding_procedure(name) {
@@ -280,7 +285,9 @@ function generate_math_operator(op) {
         var statement = '';
         var tmp;        
 	first = args[0];
-	statement += predicates.is_array(first) ? ast_to_js(first) : first;
+	// statement += predicates.is_array(first) ? ast_to_js(first) : first;
+	statement += ast_to_js(first);
+
 	for (i=1; i<args.length; i++) {
 	    tmp = predicates.is_array(args[i]) ? ast_to_js(args[i]) : args[i];
 	    if (i === (args.length - 1)) {
@@ -292,8 +299,16 @@ function generate_math_operator(op) {
 		    throw new Error(args[i] + ', last item in a list, is not an s-expression or null');
 		}
 		break;
+	    } // not at last arg
+	    // support variables that are dynamically loaded into `bindings`
+	    console.log("THIS IS TMP", tmp);
+	    if (bindings[tmp]) { // not working
+		console.log('Y should be here', tmp);
+		statement += (op + bindings[tmp]);		
+	    } else {
+		console.log('Y IS HERE INSTEAD:', tmp);
+		statement += (op + tmp);		
 	    }
-	    statement += (op + tmp);
 	}
 	return '(' + statement + ')';
     };
@@ -345,9 +360,50 @@ function single_to_none(string) {
     return string.replace(quote_test, '');
 }
 
-// (+ 5 2 (- 3 6 8))
-var arith_2 = ['+', 5, 2, ['-', 3, 6, 8, null], null];
-var arith_3 = ['<', 1, 2, ['+', 3, 4, null], null];
+function macro_eval(node) {
+    // completely evaluate an escaped expression within a backquoted s-expression
+    // that is, return the value after calling `eval` from within JavaScript
+    console.log("CALLING EVAL::ast_to_js on node:", node);
+    return eval(ast_to_js(node));
+}
+
+function expandbq(bq) {
+    // passed the entire backquoted object
+    // ie ['define', 'a', ['COMMA', x], null] was passed in from 
+    //  ['BACKQUOTE', ['define', 'a', ['COMMA', x], null]]
+    // TODO: - add environment as an argument???
+    console.log(bq);
+    var i;
+    var quoted_expression = [];
+    // find unquoted symbols and expressions in the expression
+    for (i=0;i<bq.length;i++) {
+	console.log("bq[i]", bq[i]);
+	var elem = bq[i];
+	if (predicates.is_array(elem)) { // sexp
+	    if (predicates.is_comma_escaped(elem)) { 
+		console.log("IS COMMA ESCAPED", elem);
+		quoted_expression.push(macro_eval(car(cdr(elem)))); // eval escaped sexps, containing bound variables
+	    } else { // this node is still backquoted
+		quoted_expression.push(expandbq(elem));
+	    }
+	    
+//	    } else if (predicates.is_backquoted(elem)) {
+//		quoted_expression.push(expandbq(cdr(elem))); // expand double backquotes
+	} else {
+	    quoted_expression.push(elem);
+	}
+    }
+    return quoted_expression;
+}
+
+// '`(define a ,x)';
+// var bq1 = ['BACKQUOTE', ['define', 'a', ['COMMA', 'x'], null] ];
+// console.log(expandbq(car(cdr(bq1))));
+
+var bq2 = ['if', ['<', ['COMMA', 'x'], ['COMMA', ['+', 'y', 3, null]], null], 1, 0, null];    
+var expected_ouput = ['if', ['<', 8, 95, null], 1, 0, null];
+console.log(expandbq(bq2));
+
 
 exports.car = car;
 exports.cdr = cdr;
@@ -355,3 +411,4 @@ exports.cons = cons;
 exports.ast_to_js = ast_to_js;
 exports.bindings = bindings;
 exports.form_handlers = form_handlers;
+exports.expandbq = expandbq;

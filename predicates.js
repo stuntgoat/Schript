@@ -26,8 +26,12 @@ function is_forward_quoted(node) {
     return (node[0] === 'QUOTE');
 }
 function is_backquoted(node) {
-    return (node[0] === 'BACK_QUOTE');
+    return (node[0] === 'BACKQUOTE');
 }
+function is_comma_escaped(node) {
+    return (node[0] === 'COMMA');
+}
+
 function is_quoted(node) {
     return ((is_forward_quoted(node)) || (is_backquoted(node)));
 }
@@ -121,7 +125,8 @@ exports.is_number = is_number;
 exports.is_function = is_function;
 exports.is_quoted = is_quoted;
 exports.is_forward_quoted = is_forward_quoted;
-
+exports.is_backquoted = is_backquoted;
+exports.is_comma_escaped = is_comma_escaped;
 
 // console.log("given: ", '\""hammer"\"'); 
 // console.log(double_to_single_quoted('"hammer"'));
