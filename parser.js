@@ -63,10 +63,12 @@ function cons(exp1, exp2) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-function ast_to_js(sexp) {
+function ast_to_js(sexp, env) {
     // TODO: - use is_within_env instead of a series of ifs
     //       - lowercase the car(sexp)
     //       - if an atom or a sexp is quoted ['QUOTE', 9] <= '9 and ['QUOTE', [9, 4, null]] <= '(9 4)
+    console.log('SEXP in define', sexp);
+    console.log('ENV in define', env);
     if (predicates.is_array(sexp)) {
 	if (bindings[car(sexp)]) {
 	    console.log('RETURNING BINDINGS CALL', sexp);
@@ -74,14 +76,16 @@ function ast_to_js(sexp) {
 	} else if (form_handlers[car(sexp)]) {
 	    return form_handlers[car(sexp)](cdr(sexp));
 	} else if (((sexp.length === 2)) && (sexp[1] === null)) {
+	    console.log('sexp.length == 2 and the second elem is null', sexp);
 	    // a list of one value, not in ENV
-	    return ast_to_js(car(sexp));
+	    return ast_to_js(car(sexp), ENV);
 	}
 	
 	throw new Error('in ' + sexp + ' ' + car(sexp) + ' not supported');
-    } else if (bindings[sexp]) { 
+    } else if (bindings[sexp]) {  // TODO: look in `env` bindings first? or 
 	return bindings[sexp]; // return the bound value
     } else {
+	console.log("RETURNING sexp", sexp);
 	return sexp; // not in bindings, so return the value
     }
 }
@@ -153,12 +157,13 @@ function translate_if(cdr_if) {
     var fexp = car(cdr(cdr(cdr_if)));
     var texp = car(cdr(cdr_if));
     // console.log('conditional', conditional);console.log('true expr', texp); console.log('false expr', fexp);
-    expression += 'function () { if (' + ast_to_js(conditional) + ') { return ' + ast_to_js(texp) + '; }';
-    expression += ' else { return ' + ast_to_js(fexp) + '; }}()';
+    expression += 'function () { if (' + ast_to_js(conditional, ENV) + ') { return ' + ast_to_js(texp, ENV) + '; }'; // using global if
+    expression += ' else { return ' + ast_to_js(fexp, ENV) + '; }}()'; // using global ENV
     return expression;
 }
 				   
-function define(cdr_define) {
+function define(cdr_define) { // pass env to define???
+    
     var expression = '';
     var procedure_args;
     var procedure_expr;
@@ -171,22 +176,28 @@ function define(cdr_define) {
 	procedure_expr = car(cdr(cdr_define));
 	expression += 'var ' + procedure_name + ' = ';
 	expression += 'function ' +'(' + list_arguments(procedure_args) + ') {';
-	expression += 'return ' + ast_to_js(procedure_expr) + ';';
+	expression += 'return ' + ast_to_js(procedure_expr, null) + ';'; // not using global ENV
 	expression += '}';
-	add_binding_procedure(procedure_name);
+	add_binding_procedure(procedure_name, ENV); // using global ENV
 	return expression + ';';
 
     } else if (predicates.is_string(car(cdr_define))) {
 	// we are defining something that accepts zero arguments
 	procedure_name = car((cdr_define));
+	console.log("procedure name:", procedure_name);
 	procedure_expr = cdr(cdr_define);
+
 	expression += 'var ' + procedure_name + ' = ';
 	if (is_within_env(car(procedure_expr))) { // if car expression is in env, pass procedure to ast_to_js
-	    expression += ast_to_js(procedure_expr);	    
+	    expression += ast_to_js(procedure_expr, null); // not using ENV
 	} else { // otherwise it's a var
+	    console.log("expression:", expression);
+	    console.log("procedure expression:", procedure_expr);
+	    
 	    expression += car(procedure_expr);
 	}
-	add_binding_var(procedure_name, ast_to_js(procedure_expr));
+	add_binding_var(procedure_name, ast_to_js(procedure_expr, null), ENV); // not using ENV in ast_to_js but placing variable into ENV
+	console.log('returning expression in define: ', expression);
 	return expression + ';';
     }
     return '';
@@ -205,7 +216,7 @@ function translate_cons(cdr_cons) {
 	    first_checked = cdr(first);	    
 	}
     } else {
-	first_checked = ast_to_js(first);
+	first_checked = ast_to_js(first, null); // not using ENV
     }
     if (predicates.is_quoted(second)) {
 	if (predicates.is_array(cdr(second))) {
@@ -214,7 +225,7 @@ function translate_cons(cdr_cons) {
 	    second_checked = cdr(second);	    
 	}
     } else {
-	second_checked = ast_to_js(second);
+	second_checked = ast_to_js(second, null); // not using ENV
     }
     if (predicates.is_array(second_checked)) {
 	result = cons(first_checked, second_checked);
@@ -227,9 +238,9 @@ function translate_cons(cdr_cons) {
 
 var ENV = {
     // bindings for debugging backquote behavior
-    x: 8,
-    y: 92, 
-    z: "cloud"
+    // x: 8,
+    // y: 92, 
+    // z: "cloud"
 };
 
 var form_handlers = {
@@ -247,17 +258,15 @@ var bindings = {
     '>': generate_compare('>'),
     '>=': generate_compare('>='),
     '<=': generate_compare('<='),
-
-
 };
 
-function add_binding_procedure(name) {
+function add_binding_procedure(name, binding) {
     // TODO: do not allow rebinding of builtins???
-    bindings[name] = local_procedure(name);
+    binding[name] = local_procedure(name);
 }
 
-function add_binding_var(name, value) {
-    bindings[name] = value;
+function add_binding_var(name, value, binding) {
+    binding[name] = value;
 }
 
 function local_procedure(name) { 
@@ -286,15 +295,15 @@ function generate_math_operator(op) {
         var tmp;        
 	first = args[0];
 	// statement += predicates.is_array(first) ? ast_to_js(first) : first;
-	statement += ast_to_js(first);
+	statement += ast_to_js(first, ENV); // use ENV
 
 	for (i=1; i<args.length; i++) {
-	    tmp = predicates.is_array(args[i]) ? ast_to_js(args[i]) : args[i];
+	    tmp = predicates.is_array(args[i]) ? ast_to_js(args[i], ENV) : args[i]; // ENV
 	    if (i === (args.length - 1)) {
 		if (predicates.is_null(tmp)) {
 		    break;
 		} else if (predicates.is_array(tmp)) {
-		    statement += (op + ast_to_js(last));
+		    statement += (op + ast_to_js(last, ENV)); // global ENV
 		} else {
 		    throw new Error(args[i] + ', last item in a list, is not an s-expression or null');
 		}
@@ -323,13 +332,13 @@ function generate_compare(op) {
         var statement = '';
 	assert.deepEqual(true, (args.length >= 2));
  	do {
-            first = predicates.is_array(args[i]) ? ast_to_js(args[i]) : args[i];
-            second = predicates.is_array(args[i+1]) ? ast_to_js(args[i+1]) : args[i+1];
+            first = predicates.is_array(args[i]) ? ast_to_js(args[i], null) : args[i];
+            second = predicates.is_array(args[i+1]) ? ast_to_js(args[i+1], null) : args[i+1];
             if (i === arg_length - 2) { 
                 if (predicates.is_null(second)) {
 		    break;
 		} else if (predicates.is_array(first)) {
-		    statement += (op + ast_to_js(first));
+		    statement += (op + ast_to_js(first, null)); // do not pass local ENV when creating functions
 		} else {
 		    throw new Error(args[i] + ', last item in a list, is not an s-expression or null');
 		}
@@ -364,7 +373,7 @@ function macro_eval(node) {
     // completely evaluate an escaped expression within a backquoted s-expression
     // that is, return the value after calling `eval` from within JavaScript
     console.log("CALLING EVAL::ast_to_js on node:", node);
-    return eval(ast_to_js(node));
+    return eval(ast_to_js(node), ENV); // TODO: which env to use???
 }
 
 function expandbq(bq) {
@@ -400,9 +409,18 @@ function expandbq(bq) {
 // var bq1 = ['BACKQUOTE', ['define', 'a', ['COMMA', 'x'], null] ];
 // console.log(expandbq(car(cdr(bq1))));
 
-var bq2 = ['if', ['<', ['COMMA', 'x'], ['COMMA', ['+', 'y', 3, null]], null], 1, 0, null];    
-var expected_ouput = ['if', ['<', 8, 95, null], 1, 0, null];
-console.log(expandbq(bq2));
+// var bq2 = ['if', ['<', ['COMMA', 'x'], ['COMMA', ['+', 'y', 3, null]], null], 1, 0, null];    
+// var expected_ouput = ['if', ['<', 8, 95, null], 1, 0, null];
+// console.log(expandbq(bq2));
+
+
+var ast = ['define', 'foo', 2, null];
+var expected_output = "var foo = 2;";
+console.log('input:', ast);                   
+console.log('output 1:', ast_to_js(ast, null));
+console.log('ENV', ENV);
+
+
 
 
 exports.car = car;
@@ -412,3 +430,4 @@ exports.ast_to_js = ast_to_js;
 exports.bindings = bindings;
 exports.form_handlers = form_handlers;
 exports.expandbq = expandbq;
+exports.ENV = ENV;

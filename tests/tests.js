@@ -136,11 +136,11 @@ suite('Parser.js',  // These tests are not for the parser !!!
 		   var ast = ['define', 'foo', 2, null];
 		   var expected_output = "var foo = 2;";
                    console.log('input:', ast);                   
-                   console.log('output 1:', parser.ast_to_js(ast));
+                   console.log('output 1:', parser.ast_to_js(ast, null));
 		   console.log('\n');
-		   assert.deepEqual (2, parser.bindings['foo']);
-	           assert.deepEqual(expected_output, parser.ast_to_js(ast));
-		   delete parser.bindings['foo'];
+		   assert.deepEqual(parser.ENV['foo'], 2);
+	           assert.deepEqual(expected_output, parser.ast_to_js(ast, null));
+		   delete parser.ENV['foo'];
 	       });
 
           test('Procedure: define: variable assignment to string', 
@@ -149,11 +149,10 @@ suite('Parser.js',  // These tests are not for the parser !!!
 		   var expected_output = 'var foo = "ham";';
                    console.log('input:', ast);                   
                    console.log('output 1:', parser.ast_to_js(ast));
-                   console.log('output 2:', parser.ast_to_js(ast));
 		   console.log('\n');
-		   assert.deepEqual ('"ham"', parser.bindings['foo']);
+		   assert.deepEqual ('"ham"', parser.ENV['foo']);
 	           assert.deepEqual(expected_output, parser.ast_to_js(ast));
-		   delete parser.bindings['foo'];
+		   delete parser.ENV['foo'];
 	       });
 
           test('Procedure: define: function assignment', 
