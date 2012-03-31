@@ -2,6 +2,11 @@
 
 var tester = Object.prototype.toString;
 
+
+function is_dotted_pair(AST) {
+    return((AST.length == 3) && (AST[1] === "."));
+}
+
 function is_backquote(item) {
     return item === '`';
 }
@@ -109,7 +114,7 @@ function is_quoted_once(string) {
     }
 }
 
-
+exports.is_dotted_pair = is_dotted_pair;
 exports.is_backquote = is_backquote;
 exports.is_forwardquote = is_forwardquote;
 exports.is_quoted_twice = is_quoted_twice;

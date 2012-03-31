@@ -96,7 +96,7 @@ var match_table = [
 var match_indexer = match_table.length; // first and last two elements are not needed
 var match_index_regex = /\d+/;
 
-
+ 
 var tokenize = exports.tokenize = function tokenize(expression) {
     var tokens = [];    
     // map creates a new array, by calling the callback with each element in the map_table

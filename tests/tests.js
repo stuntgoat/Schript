@@ -3,7 +3,7 @@
 var assert = require('/usr/local/lib/node_modules/chai').assert;
 
 var lexer = require("../lexer.js");
-var parser = require("../parser.js");
+var translate = require("../translate.js");
 var predicates = require("../predicates.js");
 
 suite('predicates.js', 
@@ -76,7 +76,7 @@ suite('lexer.js',
                });
       });
 
-suite('Parser.js',  // These tests are not for the parser !!!
+suite('translate.js', 
       function(){
 	  test('Basic arithmetic', 
                function (){
@@ -84,9 +84,9 @@ suite('Parser.js',  // These tests are not for the parser !!!
 		   var expected_output = "(5/2)";
 	           
                    console.log('input:', ast);                   
-                   console.log('output:', parser.ast_to_js(ast));
+                   console.log('output:', translate.ast_to_js(ast, {}));
 		   console.log('\n');
-	           assert.deepEqual(expected_output, parser.ast_to_js(ast));
+	           assert.deepEqual(expected_output, translate.ast_to_js(ast, {}));
 	       });          
 
           test('Basic arithmetic; nested expression', 
@@ -95,18 +95,18 @@ suite('Parser.js',  // These tests are not for the parser !!!
 		   var expected_output = "(5+2+(3-6-8))";
 	           
                    console.log('input:', ast);                   
-                   console.log('output:', parser.ast_to_js(ast));
+                   console.log('output:', translate.ast_to_js(ast, {}));
 		   console.log('\n');
-	           assert.deepEqual(expected_output, parser.ast_to_js(ast));
+	           assert.deepEqual(expected_output, translate.ast_to_js(ast, {}));
 	       });          
 	  test('Basic comparisons; 2 arguments', 
                function (){
 		   var ast = ['>', 3, 2, null];
 		   var expected_output = "(3 > 2)";
 		   console.log('input:', ast);                   
-		   console.log('output:', parser.ast_to_js(ast));
+		   console.log('output:', translate.ast_to_js(ast));
 		   console.log('\n');
-	           assert.deepEqual(expected_output, parser.ast_to_js(ast));
+	           assert.deepEqual(expected_output, translate.ast_to_js(ast, {}));
 	      });
               
           test('Basic comparisons; 3 arguments', 
@@ -115,9 +115,9 @@ suite('Parser.js',  // These tests are not for the parser !!!
 		   var expected_output = "(3 > 2) && (2 > 1)";
 	           
                    console.log('input:', ast);                   
-                   console.log('output:', parser.ast_to_js(ast));
+                   console.log('output:', translate.ast_to_js(ast));
 		   console.log('\n');
-	           assert.deepEqual(expected_output, parser.ast_to_js(ast));
+	           assert.deepEqual(expected_output, translate.ast_to_js(ast, {}));
 	       });
 
           test('Basic comparisons; 4 arguments', 
@@ -126,48 +126,52 @@ suite('Parser.js',  // These tests are not for the parser !!!
 		   var expected_output = "(3 > 2) && (2 > 1) && (1 > 0)";
 	           
                    console.log('input:', ast);                   
-                   console.log('output:', parser.ast_to_js(ast));
+                   console.log('output:', translate.ast_to_js(ast));
 		   console.log('\n');
-	           assert.deepEqual(expected_output, parser.ast_to_js(ast));
+	           assert.deepEqual(expected_output, translate.ast_to_js(ast, {}));
 	       });
 
           test('Procedure: define: variable assignment', 
                function (){
 		   var ast = ['define', 'foo', 2, null];
 		   var expected_output = "var foo = 2;";
+                   var LOCAL_ENV = {};
                    console.log('input:', ast);                   
-                   console.log('output 1:', parser.ast_to_js(ast, null));
+                   console.log('output 1:', translate.ast_to_js(ast, LOCAL_ENV));
 		   console.log('\n');
-		   assert.deepEqual(parser.ENV['foo'], 2);
-	           assert.deepEqual(expected_output, parser.ast_to_js(ast, null));
-		   delete parser.ENV['foo'];
+
+		   assert.deepEqual(LOCAL_ENV['foo'], 2);
+	           assert.deepEqual(expected_output, translate.ast_to_js(ast, LOCAL_ENV));
+                   delete LOCAL_ENV;
 	       });
 
           test('Procedure: define: variable assignment to string', 
                function (){
 		   var ast = ['define', 'foo', '"ham"', null];
 		   var expected_output = 'var foo = "ham";';
+                   var LOCAL_ENV = {};
                    console.log('input:', ast);                   
-                   console.log('output 1:', parser.ast_to_js(ast));
+                   console.log('output 1:', translate.ast_to_js(ast, LOCAL_ENV));
 		   console.log('\n');
-		   assert.deepEqual ('"ham"', parser.ENV['foo']);
-	           assert.deepEqual(expected_output, parser.ast_to_js(ast));
-		   delete parser.ENV['foo'];
+
+		   assert.deepEqual ('"ham"', LOCAL_ENV['foo']);
+	           assert.deepEqual(expected_output, translate.ast_to_js(ast, LOCAL_ENV));
+		   delete LOCAL_ENV;
 	       });
 
           test('Procedure: define: function assignment', 
                function (){
 		   var ast = ['define', ['mult_us', 'x', 'y', 'z', null], ['*', 'x', 'y', 'z', null], null];
 		   var expected_output = "var mult_us = function (x, y, z) {return (x*y*z);};";
-                   console.log('input:', ast);                   
-                   console.log('output 1: ', parser.ast_to_js(ast));
-                   console.log('output 2: ' + "parser.bindings['mult_us'](2, 3, 4) = " + 
-			       parser.bindings['mult_us'](2, 3, 4));
+                   console.log('input:', ast);
+                   var LOCAL_ENV = {};
+                   console.log('output 1: ', translate.ast_to_js(ast, LOCAL_ENV));
+                   console.log('output 2: ' + "LOCAL_ENV['mult_us'](2, 3, 4) = " + 
+			       LOCAL_ENV['mult_us'](2, 3, 4));
 		   console.log('\n');
-
-	           assert.deepEqual(expected_output, parser.ast_to_js(ast));
-		   assert.deepEqual("mult_us(2, 3, 4);", parser.bindings['mult_us'](2, 3, 4));
-		   delete parser.bindings['mult_us'];
+	           assert.deepEqual(expected_output, translate.ast_to_js(ast, LOCAL_ENV));
+		   assert.deepEqual("mult_us(2, 3, 4);", LOCAL_ENV['mult_us'](2, 3, 4));
+		   delete LOCAL_ENV['mult_us'];
 	       });
 
           test('Procedure: if: return expression', 
@@ -175,9 +179,9 @@ suite('Parser.js',  // These tests are not for the parser !!!
 		   var ast = ['if', ['<', 2, 5, 8, null], ['+', 9, 9, null], ['-', 9, 9, null], null];
 		   var expected_output = "function () { if ((2 < 5) && (5 < 8)) { return (9+9); } else { return (9-9); }}()";
                    console.log('input:', ast);                   
-                   console.log('output:', parser.ast_to_js(ast));
+                   console.log('output:', translate.ast_to_js(ast));
 		   console.log('\n');
-	           assert.deepEqual(expected_output, parser.ast_to_js(ast));
+	           assert.deepEqual(expected_output, translate.ast_to_js(ast));
 	       });
 
           test('Procedure: if: return value', 
@@ -185,9 +189,9 @@ suite('Parser.js',  // These tests are not for the parser !!!
 		   var ast = ['if', ['<', 2, 5, 8, null], 0, 1, null];
 		   var expected_output = "function () { if ((2 < 5) && (5 < 8)) { return 0; } else { return 1; }}()";
                    console.log('input:', ast);                   
-                   console.log('output:', parser.ast_to_js(ast));
+                   console.log('output:', translate.ast_to_js(ast));
 		   console.log('\n');
-	           assert.deepEqual(expected_output, parser.ast_to_js(ast));
+	           assert.deepEqual(expected_output, translate.ast_to_js(ast));
 	       });
 
           test('procedure: cons: string to list', 
@@ -196,8 +200,8 @@ suite('Parser.js',  // These tests are not for the parser !!!
 		   var input = ['cons', '\"hammer\"', ['QUOTE', [0, 4, null]], null];
 		   var expected_ouput = '["hammer",0,4,null]';
 		   console.log("input : ", input);
-		   console.log("output: ", parser.ast_to_js(input));
-	           assert.deepEqual(expected_ouput, parser.ast_to_js(input));
+		   console.log("output: ", translate.ast_to_js(input));
+	           assert.deepEqual(expected_ouput, translate.ast_to_js(input));
 	       });
 
 	  test('procedure: cons: quoted symbol to list', 
@@ -206,8 +210,8 @@ suite('Parser.js',  // These tests are not for the parser !!!
 		   var input = ['cons', 'hammer', ['QUOTE', [0, 4, null]], null];
 		   var expected_ouput = '[hammer,0,4,null]';
 		   console.log("input : ", input);
-		   console.log("output: ", parser.ast_to_js(input));
-	           assert.deepEqual(expected_ouput, parser.ast_to_js(input));
+		   console.log("output: ", translate.ast_to_js(input));
+	           assert.deepEqual(expected_ouput, translate.ast_to_js(input));
 	       });
 
 	  test('procedure: cons: quoted list to quoted list', 
@@ -216,8 +220,8 @@ suite('Parser.js',  // These tests are not for the parser !!!
 		   var input = ['cons', ['QUOTE', ['list', 8, 9, null]], ['QUOTE', [0, 4, null]], null];
 		   var expected_ouput = '[[list,8,9,null],0,4,null]';
 		   console.log("input : ", input);
-		   console.log("output: ", parser.ast_to_js(input));
-	           assert.deepEqual(expected_ouput, parser.ast_to_js(input));
+		   console.log("output: ", translate.ast_to_js(input));
+	           assert.deepEqual(expected_ouput, translate.ast_to_js(input));
 	       });
 	  test('procedure: cons: evaled list to quoted list', 
                function () {
@@ -225,8 +229,8 @@ suite('Parser.js',  // These tests are not for the parser !!!
 		   var input = ['cons', ['cons', 8, ['QUOTE',[9, null]]], ['QUOTE', [0, 4, null]], null];
 		   var expected_ouput = '[[8,9,null],0,4,null]';
 		   console.log("input : ", input);
-		   console.log("output: ", parser.ast_to_js(input));
-	           assert.deepEqual(expected_ouput, parser.ast_to_js(input));
+		   console.log("output: ", translate.ast_to_js(input, null));
+	           assert.deepEqual(expected_ouput, translate.ast_to_js(input, null));
 	       });
 
 	  test('procedure: cons: dotted pair to list', 
@@ -235,8 +239,8 @@ suite('Parser.js',  // These tests are not for the parser !!!
 		   var input = ['cons', ['QUOTE', [8, 9]], ['QUOTE', [4, null]], null];
 		   var expected_ouput = '[[8,9],4,null]';
 		   console.log("input : ", input);
-		   console.log("output: ", parser.ast_to_js(input));
-	           assert.deepEqual(expected_ouput, parser.ast_to_js(input));
+		   console.log("output: ", translate.ast_to_js(input));
+	           assert.deepEqual(expected_ouput, translate.ast_to_js(input, null));
 	       });
 
 	  test('procedure: backquoted s-expressions: single escaped variable', 
@@ -244,9 +248,13 @@ suite('Parser.js',  // These tests are not for the parser !!!
 		   console.log("Scheme : `(define a ,x) // x=8, in `bindings` ENV");
 		   var input = ['define', 'a', ['COMMA', 'x'], null];
 		   var expected_ouput = ['define', 'a', 8, null];
+                   var LOCAL_ENV = {
+                       x: 8
+                   };
 		   console.log("input : ", input);
-		   console.log("output: ", parser.expandbq(input));
-	           assert.deepEqual(expected_ouput, parser.expandbq(input)); 
+		   console.log("output: ", translate.expandbq(input, LOCAL_ENV));
+	           assert.deepEqual(expected_ouput, translate.expandbq(input, LOCAL_ENV)); 
+                   delete LOCAL_ENV;
 	       });
 
 	  test('procedure: backquoted s-expressions: escaped expression and escaped var', 
@@ -254,12 +262,18 @@ suite('Parser.js',  // These tests are not for the parser !!!
 		   console.log("Scheme : `(if (< ,x ,(+ y 3)) 1 0) // x=8, y=92 in `bindings` ENV");
 		   var input = ['if', ['<', ['COMMA', 'x'], ['COMMA', ['+', 'y', 3, null]], null], 1, 0, null];
 		   var expected_ouput = ['if', ['<', 8, 95, null], 1, 0, null];
+                   var LOCAL_ENV = {
+                       x:8,
+                       y:92
+                   };
 		   console.log("input : ", input);
-		   console.log("output: ", parser.expandbq(input));
-	           assert.deepEqual(expected_ouput, parser.expandbq(input)); 
+		   console.log("output: ", translate.expandbq(input, LOCAL_ENV));
+	           assert.deepEqual(expected_ouput, translate.expandbq(input, LOCAL_ENV)); 
+                   delete LOCAL_ENV;
 	       });
-
       });
+
+
 
 // suite('Macros: ', 
 //       function () {
