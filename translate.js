@@ -30,8 +30,6 @@ var lambda_3 = ['lambda', [null], ['*', 90, 3, null], null]; // lambda passed a 
 // (list 2 4 5)
 var list_1 = ['list', 2, 4, 5, null];
 
-
-
 ////////////////////////////////////////////////////////////////////////////////
 // for traversing the AST
 function car(sexp) {
@@ -129,7 +127,7 @@ function scheme_data_to_js(scheme_data) {
     // this string is not meant to be quoted- it is meant to be a symbol ( eg within an environment context )
 };
 
-function is_within_env(arg, env) {
+function is_within_env(arg, env) { // WARNING MAY FAIL; needs refactor where called
     return (bindings[arg] || form_handlers[arg] || env[arg]);
 }
 
@@ -223,17 +221,17 @@ function translate_cons(cdr_cons) {
     }
 }
 
-
-var ENV = {
-    x: 8,
-    y: 92, 
-    z: "cloud"
-};
+// var ENV = {
+//     x: 8,
+//     y: 92, 
+//     z: "cloud"
+// };
 
 var form_handlers = {
     define: define,
     'if': translate_if,
     cons: translate_cons // cons scheme to Javascript. cons() works on the AST but translate_cons is for returning scheme data
+    
 };
 
 var bindings = {

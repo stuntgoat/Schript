@@ -9,9 +9,6 @@ var lexer = require('./lexer.js');
 
 var tokenize = lexer.tokenize;
 
-
-
-
 // ['/', 5, 2, null];
 var div1 = '(/ 5 2)';
 var div1_tokens = tokenize(div1);
@@ -33,7 +30,6 @@ var def1_tokens = tokenize(def1);
 // [ '(', 'define', 'a', 8, ')' ]
 // ['define', 'a', 8, null]
 
-
 var parse = function (tokens) {
     // given a list of tokens, create an AST    
     // TODO: - handle null terminated lists and dotted pairs
@@ -49,9 +45,7 @@ var parse = function (tokens) {
             stack_depth += 1;
             ast_stack[stack_depth] = [];
         } else if (predicates.is_rparen(tokens[i])) { // leaving depth
-            
-            // dotted pair check 
-            if (predicates.is_dotted_pair(ast_stack[stack_depth])) {
+            if (predicates.is_dotted_pair(ast_stack[stack_depth])) { // dotted pair check 
                 // push dotted pair to stack
                 ast_stack[stack_depth - 1].push(ast_stack[stack_depth]); 
                 delete ast_stack[stack_depth];
@@ -66,14 +60,34 @@ var parse = function (tokens) {
                     ast_stack[stack_depth].push(null); // append null and push to previous stack                    
                 }
             } 
-
         } else {
             ast_stack[stack_depth].push(tokens[i]);
         }
     }
     return ast_stack[stack_depth];
 };
-// var add1 = '(+ 5 2(- 3 6 8))';
-console.log(parse(add1_tokens));
+
+// // var add1 = '(+ 5 2(- 3 6 8))';
+// console.log(parse(add1_tokens));
 // console.log(parse(gt1_tokens));
 // console.log(parse(def1_tokens));
+
+
+// // (if (< 4 99) 1 0)
+// var if1_tokens = tokenize('(if (< 4 99) 1 0)');
+// console.log(parse(if1_tokens));
+
+// var if2_tokens = tokenize('(if (< 4 99) "ham" 0)');
+// console.log(parse(if2_tokens));
+
+expected_output = ['define', ['mult_us', 'x', 'y', 'z', null], ['*', 'x', 'y', 'z', null], null];
+var f1_tokens = tokenize('(define (mult_us x y z) (* x y z))');
+
+console.log("expected: ", expected_output);
+console.log("parsed  : ", parse(f1_tokens));
+
+assert.deepEqual(parse(f1_tokens), expected_output);
+
+exports.parse = parse; 
+
+

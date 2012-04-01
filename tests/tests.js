@@ -5,6 +5,8 @@ var assert = require('/usr/local/lib/node_modules/chai').assert;
 var lexer = require("../lexer.js");
 var translate = require("../translate.js");
 var predicates = require("../predicates.js");
+var parser = require("../parser.js");
+
 
 suite('predicates.js', 
       function() {
@@ -75,6 +77,56 @@ suite('lexer.js',
 
                });
       });
+
+suite('parser.js', 
+      function () {
+          test('parse nested expression with negative numbers', 
+               function (){
+                   // "(- a(*(- 4 -6)-3 4)99)";
+	           var tokens = ['(', '-', 'a', '(', '*', '(', '-', 4, -6, ')', -3, 4, ')', 99, ')'];
+                   var expected_output = ['-', 'a', ['*', ['-', 4, -6, null], -3, 4, null], 99, null ];
+                   console.log('input:', tokens);                   
+                   console.log('output:', parser.parse(tokens));
+		   console.log('\n');
+	           assert.deepEqual(parser.parse(tokens), expected_output);
+	       });
+
+          test('parse define expression that delcares one variable', 
+               function (){
+	           var tokens = ['(', 'define', 'foo', 2, ')'];
+	           var expected_output = ['define', 'foo', 2, null];
+                   console.log('input:', tokens);
+                   console.log('output:', parser.parse(tokens));
+		   console.log('\n');
+	           assert.deepEqual(parser.parse(tokens), expected_output);
+	       });
+
+          test('parse define: define procedure that accepts 3 variables', 
+               function (){
+	           var tokens = ['(', 'define', '(', 'mult_us', 'x', 'y', 'z', ')', '(', '*', 'x', 'y', 'z', ')', ')'];
+	           var expected_output =  ['define', ['mult_us', 'x', 'y', 'z', null], ['*', 'x', 'y', 'z', null], null];
+                   console.log('input:', tokens);                   
+                   console.log('output:', parser.parse(tokens));
+		   console.log('\n');
+	           assert.deepEqual(expected_output, parser.parse(tokens));
+	       });
+
+          test('parse define: define procedure that accepts 2 variables', 
+               function (){
+	           var tokens = ['(', 'let', '(', '(', 'y', 8, ')', '(', 'z', 7, ')', ')', '(', '*', 'y', 'z', ')', '(', '+', 'y', 'z', ')', ')'];
+	           var expected_output = ['let', [['y', 8, null], ['z', 7, null], null], ['*', 'y', 'z', null], ['+', 'y', 'z', null], null]; 
+
+                   console.log('input:', tokens);                   
+                   console.log('output:', parser.parse(tokens));
+		   console.log('\n');
+	           assert.deepEqual(expected_output, parser.parse(tokens));
+	       });
+
+});
+
+
+
+
 
 suite('translate.js', 
       function(){
@@ -245,7 +297,7 @@ suite('translate.js',
 
 	  test('procedure: backquoted s-expressions: single escaped variable', 
                function () {
-		   console.log("Scheme : `(define a ,x) // x=8, in `bindings` ENV");
+		   console.log("Scheme : `(define a ,x) // x=8, in `bindings` LOCAL_ENV");
 		   var input = ['define', 'a', ['COMMA', 'x'], null];
 		   var expected_ouput = ['define', 'a', 8, null];
                    var LOCAL_ENV = {
@@ -259,7 +311,7 @@ suite('translate.js',
 
 	  test('procedure: backquoted s-expressions: escaped expression and escaped var', 
                function () {
-		   console.log("Scheme : `(if (< ,x ,(+ y 3)) 1 0) // x=8, y=92 in `bindings` ENV");
+		   console.log("Scheme : `(if (< ,x ,(+ y 3)) 1 0) // x=8, y=92 in `bindings` LOCAL_ENV");
 		   var input = ['if', ['<', ['COMMA', 'x'], ['COMMA', ['+', 'y', 3, null]], null], 1, 0, null];
 		   var expected_ouput = ['if', ['<', 8, 95, null], 1, 0, null];
                    var LOCAL_ENV = {
@@ -296,3 +348,6 @@ suite('translate.js',
 //                    // assert.deepEqual(1, 1);
 //                });
 //       });
+
+// (let ((y 8)(z 7)) (* y z) (+ y z))
+
