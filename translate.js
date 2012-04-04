@@ -379,6 +379,15 @@ function expandbq(bq, env) {
     return quoted_expression;
 }
 
+function schript(text) {
+    // given Scheme, output JavaScript
+    
+
+
+}
+
+
+
 
 exports.car = car;
 exports.cdr = cdr;

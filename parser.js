@@ -1,34 +1,40 @@
 // parser.js
 // Functions to create an abstract syntax tree from an array of Scheme tokens.
-// exports: parse
-// TODO: 
 
 var predicates = require('./predicates.js');
 var assert = require('assert');
 var lexer = require('./lexer.js');
-
 var tokenize = lexer.tokenize;
 
-// ['/', 5, 2, null];
-var div1 = '(/ 5 2)';
-var div1_tokens = tokenize(div1);
 
-// ['+', 5, 2, ['-', 3, 6, 8, null], null];
-var add1 = '(+ 5 2(- 3 6 8))';
-var add1_tokens = tokenize(add1);
-console.log(add1_tokens);
+function separate_sexps(tokens) {
+    // parse a token array that contains several, non-nested s-expressions.
+    // return individual s-expressions in an Array
 
-// ['>', 3, 2, 1, 0, null];
-var gt1 = '(> 3 2 1 0)';
-var gt1_tokens = tokenize(gt1);
+    var i;
+    var tmp_stack = [];
+    var stack_stack = [];
+    var stack_depth = 0;
 
+    for (i=0; i<tokens.length; i++) {
+        if (predicates.is_lparen(tokens[i]) && (stack_depth === 0)) { // entering new depth
+            tmp_stack.push(tokens[i]);
+            stack_depth += 1;
+        } else if (predicates.is_rparen(tokens[i])) { // leaving depth
+            tmp_stack.push(tokens[i]);
+            if (stack_depth === 1) {
+                stack_stack.push(tmp_stack);
+                tmp_stack = [];
+                stack_depth -= 1
+                continue;
+            }
+        } else {
+            tmp_stack.push(tokens[i]);
+        }
+    }
+    return stack_stack;
+}
 
-
-var def1 = '(define a 8)';
-var def1_tokens = tokenize(def1);
-// console.log(def1_tokens);
-// [ '(', 'define', 'a', 8, ')' ]
-// ['define', 'a', 8, null]
 
 var parse = function (tokens) {
     // given a list of tokens, create an AST    
@@ -66,28 +72,13 @@ var parse = function (tokens) {
     }
     return ast_stack[stack_depth];
 };
-
-// // var add1 = '(+ 5 2(- 3 6 8))';
-// console.log(parse(add1_tokens));
-// console.log(parse(gt1_tokens));
-// console.log(parse(def1_tokens));
-
-
-// // (if (< 4 99) 1 0)
-// var if1_tokens = tokenize('(if (< 4 99) 1 0)');
-// console.log(parse(if1_tokens));
-
-// var if2_tokens = tokenize('(if (< 4 99) "ham" 0)');
-// console.log(parse(if2_tokens));
-
-expected_output = ['define', ['mult_us', 'x', 'y', 'z', null], ['*', 'x', 'y', 'z', null], null];
-var f1_tokens = tokenize('(define (mult_us x y z) (* x y z))');
-
-console.log("expected: ", expected_output);
-console.log("parsed  : ", parse(f1_tokens));
-
-assert.deepEqual(parse(f1_tokens), expected_output);
-
 exports.parse = parse; 
+////////////////////////////////////////////////////////////////////////////////
 
+var input = "(define x 27)(define y 9)(+ x y)";
+var tokenized_all = tokenize(input);
+var separated_sexps = separate_sexps(tokenized_all);
+
+console.log(tokenized_all);
+console.log(separated_sexps);
 

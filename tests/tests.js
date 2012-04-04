@@ -62,7 +62,6 @@ suite('lexer.js',
 		   console.log('input:', input);                   
                    console.log('output:', lexer.tokenize(input));
 		   console.log('\n');
-
                    assert.deepEqual(expected_output, lexer.tokenize(input));
                }); 
 
@@ -74,7 +73,6 @@ suite('lexer.js',
                    console.log('output:', lexer.tokenize(input));
 		   console.log('\n');
                    assert.deepEqual(expected_output, lexer.tokenize(input));
-
                });
       });
 
@@ -125,12 +123,9 @@ suite('parser.js',
 });
 
 
-
-
-
 suite('translate.js', 
       function(){
-	  test('Basic arithmetic', 
+	  test('AST to JS: Basic arithmetic', 
                function (){
 		   var ast = ['/', 5, 2, null];
 		   var expected_output = "(5/2)";
@@ -141,7 +136,7 @@ suite('translate.js',
 	           assert.deepEqual(expected_output, translate.ast_to_js(ast, {}));
 	       });          
 
-          test('Basic arithmetic; nested expression', 
+          test('AST to JS: Basic arithmetic; nested expression', 
                function (){
 		   var ast = ['+', 5, 2, ['-', 3, 6, 8, null], null];
 		   var expected_output = "(5+2+(3-6-8))";
@@ -151,7 +146,7 @@ suite('translate.js',
 		   console.log('\n');
 	           assert.deepEqual(expected_output, translate.ast_to_js(ast, {}));
 	       });          
-	  test('Basic comparisons; 2 arguments', 
+	  test('AST to JS: Basic comparisons; 2 arguments', 
                function (){
 		   var ast = ['>', 3, 2, null];
 		   var expected_output = "(3 > 2)";
@@ -161,7 +156,7 @@ suite('translate.js',
 	           assert.deepEqual(expected_output, translate.ast_to_js(ast, {}));
 	      });
               
-          test('Basic comparisons; 3 arguments', 
+          test('AST to JS: Basic comparisons; 3 arguments', 
                function (){
 		   var ast = ['>', 3, 2, 1, null];
 		   var expected_output = "(3 > 2) && (2 > 1)";
@@ -172,7 +167,7 @@ suite('translate.js',
 	           assert.deepEqual(expected_output, translate.ast_to_js(ast, {}));
 	       });
 
-          test('Basic comparisons; 4 arguments', 
+          test('AST to JS: Basic comparisons; 4 arguments', 
                function (){
 		   var ast = ['>', 3, 2, 1, 0, null];
 		   var expected_output = "(3 > 2) && (2 > 1) && (1 > 0)";
@@ -183,7 +178,7 @@ suite('translate.js',
 	           assert.deepEqual(expected_output, translate.ast_to_js(ast, {}));
 	       });
 
-          test('Procedure: define: variable assignment', 
+          test('AST to JS: Procedure: define: variable assignment', 
                function (){
 		   var ast = ['define', 'foo', 2, null];
 		   var expected_output = "var foo = 2;";
@@ -197,7 +192,7 @@ suite('translate.js',
                    delete LOCAL_ENV;
 	       });
 
-          test('Procedure: define: variable assignment to string', 
+          test('AST to JS: Procedure: define: variable assignment to string', 
                function (){
 		   var ast = ['define', 'foo', '"ham"', null];
 		   var expected_output = 'var foo = "ham";';
@@ -211,7 +206,7 @@ suite('translate.js',
 		   delete LOCAL_ENV;
 	       });
 
-          test('Procedure: define: function assignment', 
+          test('AST to JS: Procedure: define: function assignment', 
                function (){
 		   var ast = ['define', ['mult_us', 'x', 'y', 'z', null], ['*', 'x', 'y', 'z', null], null];
 		   var expected_output = "var mult_us = function (x, y, z) {return (x*y*z);};";
@@ -226,7 +221,7 @@ suite('translate.js',
 		   delete LOCAL_ENV['mult_us'];
 	       });
 
-          test('Procedure: if: return expression', 
+          test('AST to JS: Procedure: if: return expression', 
                function (){
 		   var ast = ['if', ['<', 2, 5, 8, null], ['+', 9, 9, null], ['-', 9, 9, null], null];
 		   var expected_output = "function () { if ((2 < 5) && (5 < 8)) { return (9+9); } else { return (9-9); }}()";
@@ -236,7 +231,7 @@ suite('translate.js',
 	           assert.deepEqual(expected_output, translate.ast_to_js(ast));
 	       });
 
-          test('Procedure: if: return value', 
+          test('AST to JS: Procedure: if: return value', 
                function (){
 		   var ast = ['if', ['<', 2, 5, 8, null], 0, 1, null];
 		   var expected_output = "function () { if ((2 < 5) && (5 < 8)) { return 0; } else { return 1; }}()";
@@ -246,7 +241,7 @@ suite('translate.js',
 	           assert.deepEqual(expected_output, translate.ast_to_js(ast));
 	       });
 
-          test('procedure: cons: string to list', 
+          test('AST to JS: procedure: cons: string to list', 
                function (){
 		   console.log("Scheme : (cons \"hammer\" '(0 4))");
 		   var input = ['cons', '\"hammer\"', ['QUOTE', [0, 4, null]], null];
@@ -256,7 +251,7 @@ suite('translate.js',
 	           assert.deepEqual(expected_ouput, translate.ast_to_js(input));
 	       });
 
-	  test('procedure: cons: quoted symbol to list', 
+	  test('AST to JS: procedure: cons: quoted symbol to list', 
                function (){
 		   console.log("Scheme : (cons \"hammer\" '(0 4))");
 		   var input = ['cons', 'hammer', ['QUOTE', [0, 4, null]], null];
@@ -266,7 +261,7 @@ suite('translate.js',
 	           assert.deepEqual(expected_ouput, translate.ast_to_js(input));
 	       });
 
-	  test('procedure: cons: quoted list to quoted list', 
+	  test('AST to JS: procedure: cons: quoted list to quoted list', 
                function () {
 		   console.log("Scheme : (cons \'(list 8 9) \'(0 4))");
 		   var input = ['cons', ['QUOTE', ['list', 8, 9, null]], ['QUOTE', [0, 4, null]], null];
@@ -275,7 +270,7 @@ suite('translate.js',
 		   console.log("output: ", translate.ast_to_js(input));
 	           assert.deepEqual(expected_ouput, translate.ast_to_js(input));
 	       });
-	  test('procedure: cons: evaled list to quoted list', 
+	  test('AST to JS: procedure: cons: evaled list to quoted list', 
                function () {
 		   console.log("Scheme : (cons (cons 8 \'(9)) \'(0 4))");
 		   var input = ['cons', ['cons', 8, ['QUOTE',[9, null]]], ['QUOTE', [0, 4, null]], null];
@@ -285,7 +280,7 @@ suite('translate.js',
 	           assert.deepEqual(expected_ouput, translate.ast_to_js(input, null));
 	       });
 
-	  test('procedure: cons: dotted pair to list', 
+	  test('AST to JS: procedure: cons: dotted pair to list', 
                function () {
 		   console.log("Scheme : (cons '(8 . 9) '(4))");
 		   var input = ['cons', ['QUOTE', [8, 9]], ['QUOTE', [4, null]], null];
@@ -295,7 +290,7 @@ suite('translate.js',
 	           assert.deepEqual(expected_ouput, translate.ast_to_js(input, null));
 	       });
 
-	  test('procedure: backquoted s-expressions: single escaped variable', 
+	  test('AST to JS: procedure: backquoted s-expressions: single escaped variable', 
                function () {
 		   console.log("Scheme : `(define a ,x) // x=8, in `bindings` LOCAL_ENV");
 		   var input = ['define', 'a', ['COMMA', 'x'], null];
@@ -308,8 +303,8 @@ suite('translate.js',
 	           assert.deepEqual(expected_ouput, translate.expandbq(input, LOCAL_ENV)); 
                    delete LOCAL_ENV;
 	       });
-
-	  test('procedure: backquoted s-expressions: escaped expression and escaped var', 
+ 
+ 	  test('AST to JS: procedure: backquoted s-expressions: escaped expression and escaped var', 
                function () {
 		   console.log("Scheme : `(if (< ,x ,(+ y 3)) 1 0) // x=8, y=92 in `bindings` LOCAL_ENV");
 		   var input = ['if', ['<', ['COMMA', 'x'], ['COMMA', ['+', 'y', 3, null]], null], 1, 0, null];
@@ -323,6 +318,52 @@ suite('translate.js',
 	           assert.deepEqual(expected_ouput, translate.expandbq(input, LOCAL_ENV)); 
                    delete LOCAL_ENV;
 	       });
+ 
+	  test('Scheme to JS: simple arithmetic', 
+               function () {
+		   var input = "(+ 6 77)";
+		   var expected_ouput = "(6+77)";
+                   var LOCAL_ENV = {};
+		   console.log("input : ", input);
+                   var lexed = lexer.tokenize(input);
+                   var parsed = parser.parse(lexed);
+                   var output = translate.ast_to_js(parsed, LOCAL_ENV);
+		   console.log("output: ", output);
+	           assert.deepEqual(expected_ouput, output);
+                   delete LOCAL_ENV;
+	       });
+
+	  test('Scheme to JS: nested arithmetic', 
+               function () {
+		   var input = "(+ 6 77(- 27 9 11))";
+		   var expected_ouput = "(6+77+(27-9-11))";
+                   var LOCAL_ENV = {};
+		   console.log("input : ", input);
+                   var lexed = lexer.tokenize(input);
+                   var parsed = parser.parse(lexed);
+                   var output = translate.ast_to_js(parsed, LOCAL_ENV);
+		   console.log("output: ", output);
+	           assert.deepEqual(expected_ouput, output);
+                   delete LOCAL_ENV;
+	       });
+
+	  // test('Scheme to JS: multiple statements', 
+          //      function () {
+	  //          var input = "(define x 27)(define y 9)(+ x y)";
+	  //          var expected_ouput = "";
+          //          var LOCAL_ENV = {};
+	  //          console.log("input : ", input);
+          //          var lexed = lexer.tokenize(input);
+          //          var parsed = parser.parse(lexed);
+          //          console.log("parsed: ", parsed);
+          //          var output = translate.ast_to_js(parsed, LOCAL_ENV);
+	  //          console.log("output: ", output);
+	  //          // assert.deepEqual(expected_ouput, output);
+          //          delete LOCAL_ENV;
+	  //      });
+
+  
+
       });
 
 
