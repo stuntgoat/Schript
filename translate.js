@@ -3,32 +3,15 @@
 // exports: parse
 // TODO: 
 
+
 var predicates = require('./predicates.js');
 var assert = require('assert');
 
+var lexer = require('./lexer');
+var tokenize = lexer.tokenize;
+var parser = require('./parser');
+
 // null 'equals' [], that is they should be interchangable
-
-// ("cat")
-var string_cat = [['STRING', 'cat'], null];
-
-// '(a 7 "cat") => (a 7 "cat") when evaled at repl
-var cat = ['QUOTE', ['a', 7, ['STRING', 'cat'], null]];
-
-// ('a 7 "cat") // an error
-var unquoted_cat =  [['QUOTE', 'a'], 7, ['STRING', 'cat'], null];
-
-// (+ 5 6 (- 8 3))
-var arith_1 = ['+', 5, 6, ['-', 8, 3, null], null];
-
-// ((lambda (x) (* x x)) 2)
-var lambda_1 = [['lambda', ['x', null], ['*', 'x', 'x', null]], 2, null];
-
-// (lambda () (* 90 3))
-var lambda_2 = ['lambda', null, ['*', 90, 3, null], null]; // lambda passed an empty list
-var lambda_3 = ['lambda', [null], ['*', 90, 3, null], null]; // lambda passed a list of null 
-
-// (list 2 4 5)
-var list_1 = ['list', 2, 4, 5, null];
 
 ////////////////////////////////////////////////////////////////////////////////
 // for traversing the AST
@@ -39,7 +22,6 @@ function car(sexp) {
 	return false;
     }
 }
-
 function cdr(sexp) {
     var cdr_sexp;
     if (sexp.length >= 2) {
@@ -75,14 +57,25 @@ function ast_to_js(sexp, env) {
 	} else if (((sexp.length === 2)) && (sexp[1] === null)) {
 	    // a list of one value, not in bindings
 	    return ast_to_js(car(sexp), env);
-	}
+	} else if (env.hasOwnProperty(car(sexp))) {
+            // if this is an expression and car(sexp) is in env, pass as a procedure
+            
+            return env[car(sexp)](cdr(sexp), env); // pass env
+        } else {
 	throw new Error('in ' + sexp + ' ' + car(sexp) + ' not supported');
+        }
     } else if (env.hasOwnProperty(sexp)) {
-        return env[sexp]; // return the bound value            
+        console.log("env.hasOwnProperty(sexp)", sexp);
+        return sexp; // return the variable name; value is in env
+    } else if (predicates.is_number(sexp)) {
+        console.log("predicates.is_number(sexp)", sexp);
+        return sexp;
     } else {
-	return sexp; // not in bindings, so return the value
+        return sexp; // a string???
     }
-}
+    
+    
+};
 
 function unquote_symbols(string) {
     var expression = '';
@@ -294,10 +287,9 @@ function generate_math_operator(op) {
 	    } // not at last arg
 	    // support variables that are dynamically loaded into `bindings`
 
-	    if (bindings[tmp]) { // not working
-
-		statement += (op + bindings[tmp]);		
-	    } else {
+	    if (env[tmp]) { // not working
+		statement += (op + tmp);		
+	    } else { // a number
 		statement += (op + tmp);		
 	    }
 	}
@@ -354,6 +346,7 @@ function single_to_none(string) {
 function macro_eval(node, env) {
     // completely evaluate an escaped expression within a backquoted s-expression
     // that is, return the value after calling `eval` from within JavaScript
+    console.log(node, env);
     return eval(ast_to_js(node, env)); // TODO: which env to use???
 }
 
@@ -363,6 +356,7 @@ function expandbq(bq, env) {
     //  ['BACKQUOTE', ['define', 'a', ['COMMA', x], null]]
     var i;
     var quoted_expression = [];
+    
     // find unquoted symbols and expressions in the expression
     for (i=0;i<bq.length;i++) {
 	var elem = bq[i];
@@ -381,10 +375,44 @@ function expandbq(bq, env) {
 
 function schript(text) {
     // given Scheme, output JavaScript
-    
 
+    var i; // counter 
+    var LOCAL_ENV = {}; // the local environment
+    var tokens = tokenize(text); // all tokens
+    var sexps = parser.separate_sexps(tokens); // Arrays s-exps as tokens
+    var JS = '';
+    var JS_FINAL = '';
 
+    for (i=0; i< sexps.length; i++) {
+        var parsed = parser.parse(sexps[i]);
+        JS += ast_to_js(parsed, LOCAL_ENV) + '\n';
+    }
+
+    return JS;
 }
+
+
+var input = ['define', 'a', ['COMMA', 'x'], null];
+var expected_ouput = ['define', 'a', 8, null];
+var LOCAL_ENV = {
+    x: 8
+};
+console.log("input : ", input);
+console.log("output: ", expandbq(input, LOCAL_ENV));
+
+// var ast = ['define', 'foo', '"ham"', null];
+// var expected_output = 'var foo = "ham";';
+// var LOCAL_ENV = {};
+// console.log('input:', ast);                   
+// console.log('output 1:', ast_to_js(ast, LOCAL_ENV));
+// console.log('LOCAL_ENV:', LOCAL_ENV);                   
+
+
+
+
+// var input = "(define x 27)(define y 9)(+ x y)";
+// var output = schript(input);
+// console.log(output);
 
 
 
@@ -396,3 +424,26 @@ exports.ast_to_js = ast_to_js;
 exports.bindings = bindings;
 exports.form_handlers = form_handlers;
 exports.expandbq = expandbq;
+
+
+// // ("cat")
+// var string_cat = [['STRING', 'cat'], null];
+
+// // '(a 7 "cat") => (a 7 "cat") when evaled at repl
+// var cat = ['QUOTE', ['a', 7, ['STRING', 'cat'], null]];
+
+// // ('a 7 "cat") // an error
+// var unquoted_cat =  [['QUOTE', 'a'], 7, ['STRING', 'cat'], null];
+
+// // (+ 5 6 (- 8 3))
+// var arith_1 = ['+', 5, 6, ['-', 8, 3, null], null];
+
+// // ((lambda (x) (* x x)) 2)
+// var lambda_1 = [['lambda', ['x', null], ['*', 'x', 'x', null]], 2, null];
+
+// // (lambda () (* 90 3))
+// var lambda_2 = ['lambda', null, ['*', 90, 3, null], null]; // lambda passed an empty list
+// var lambda_3 = ['lambda', [null], ['*', 90, 3, null], null]; // lambda passed a list of null 
+
+// // (list 2 4 5)
+// var list_1 = ['list', 2, 4, 5, null];

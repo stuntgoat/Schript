@@ -27,12 +27,14 @@ function is_rparen(item) {
     return item === ')';
 }
 
-function is_forward_quoted(node) {
+function is_forward_quoted(node) { // inside ast
     return (node[0] === 'QUOTE');
 }
+
 function is_backquoted(node) {
     return (node[0] === 'BACKQUOTE');
 }
+
 function is_comma_escaped(node) {
     return (node[0] === 'COMMA');
 }

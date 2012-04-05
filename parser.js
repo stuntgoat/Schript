@@ -25,7 +25,7 @@ function separate_sexps(tokens) {
             if (stack_depth === 1) {
                 stack_stack.push(tmp_stack);
                 tmp_stack = [];
-                stack_depth -= 1
+                stack_depth -= 1;
                 continue;
             }
         } else {
@@ -34,7 +34,6 @@ function separate_sexps(tokens) {
     }
     return stack_stack;
 }
-
 
 var parse = function (tokens) {
     // given a list of tokens, create an AST    
@@ -73,11 +72,14 @@ var parse = function (tokens) {
     return ast_stack[stack_depth];
 };
 exports.parse = parse; 
+exports.separate_sexps = separate_sexps;
 ////////////////////////////////////////////////////////////////////////////////
 
 var input = "(define x 27)(define y 9)(+ x y)";
 var tokenized_all = tokenize(input);
 var separated_sexps = separate_sexps(tokenized_all);
+
+
 
 console.log(tokenized_all);
 console.log(separated_sexps);
