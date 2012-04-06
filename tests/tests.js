@@ -299,8 +299,8 @@ suite('translate.js',
                        x: 8
                    };
 		   console.log("input : ", input);
-		   console.log("output: ", translate.expandbq(input, LOCAL_ENV));
-	           assert.deepEqual(expected_ouput, translate.expandbq(input, LOCAL_ENV)); 
+		   console.log("output: ", translate.expand_vars(input, LOCAL_ENV));
+	           assert.deepEqual(expected_ouput, translate.expand_vars(input, LOCAL_ENV)); 
                    delete LOCAL_ENV;
 	       });
  
@@ -308,14 +308,14 @@ suite('translate.js',
                function () {
 		   console.log("Scheme : `(if (< ,x ,(+ y 3)) 1 0) // x=8, y=92 in `bindings` LOCAL_ENV");
 		   var input = ['if', ['<', ['COMMA', 'x'], ['COMMA', ['+', 'y', 3, null]], null], 1, 0, null];
-		   var expected_ouput = ['if', ['<', 8, 95, null], 1, 0, null];
+		   var expected_ouput = [ 'if', [ '<', 8, [ '+', 92, 3, null ], null ], 1, 0, null ];
                    var LOCAL_ENV = {
                        x:8,
                        y:92
                    };
 		   console.log("input : ", input);
-		   console.log("output: ", translate.expandbq(input, LOCAL_ENV));
-	           assert.deepEqual(expected_ouput, translate.expandbq(input, LOCAL_ENV)); 
+		   console.log("output: ", translate.expand_vars(input, LOCAL_ENV));
+	           assert.deepEqual(expected_ouput, translate.expand_vars(input, LOCAL_ENV)); 
                    delete LOCAL_ENV;
 	       });
  

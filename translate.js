@@ -74,8 +74,8 @@ function ast_to_js(sexp, env) {
         console.log("predicates.is_quoted_twice(sexp)", sexp);
         return sexp; // a string???
     } else {
-        return "TYPE NOT FOUND";
-    
+//        return "TYPE NOT FOUND";
+          return sexp;  
     }
 }
 
@@ -351,7 +351,9 @@ function expand_vars(node, env) {
             console.log("is comma escaped", node);
             if (predicates.is_array(car(cdr(node)))) { // is expression?
                 console.log("is expression ", car(cdr(node)));
-                expanded_node.push(expand_vars(car(cdr(node)), env));
+//                for (i=0; i<node.length; i++) { 
+
+                return expand_vars(car(cdr(node)), env);
                 
             } else if (env.hasOwnProperty(car(cdr(node)))) { // symbol in env?
                 return env[car(cdr(node))];
@@ -360,8 +362,10 @@ function expand_vars(node, env) {
             }
         } else { // not escaped, but still an array so iterate over and expand vars
             for (i=0; i<node.length; i++) { 
+                console.log("node[i]: ", node[i]);
                 expanded_node.push(expand_vars(node[i], env));
             }
+            return expanded_node;
         }
 
     } else if (env.hasOwnProperty(node)) { // symbol in env?
@@ -373,8 +377,8 @@ function expand_vars(node, env) {
     return expanded_node;
 }           
 
-    
-var input = ['define', 'a', ['COMMA', 'x'], null];
+//var input = ['define', 'a', ['COMMA', ['+', 'x', 99, null]], null];
+ var input = ['define', 'a', ['COMMA', 'x'], null];
 // var expected_ouput = ['define', 'a', 8, null];
 var LOCAL_ENV = {
     x: 8
@@ -385,49 +389,49 @@ console.log("output: ", expand_vars(input, LOCAL_ENV));
 
 
 
-function macro_eval(node, env) {
-    // completely evaluate an escaped expression within a backquoted s-expression
-    // that is, return the value after calling `eval` from within JavaScript
-    //    console.log(node, env);
+// function macro_eval(node, env) {
+//     // completely evaluate an escaped expression within a backquoted s-expression
+//     // that is, return the value after calling `eval` from within JavaScript
+//     //    console.log(node, env);
     
-    // substitute all vars with values in env
-    // fully evaluate expression to JavaScript 
-    // then eval JavaScript and return value
+//     // substitute all vars with values in env
+//     // fully evaluate expression to JavaScript 
+//     // then eval JavaScript and return value
 
     
-    return eval(ast_to_js(node, env)); // TODO: which env to use???
-}
+//     return eval(ast_to_js(node, env)); // TODO: which env to use???
+// }
     
-function expandbq(bq, env) {
-    // passed the entire backquoted object (ast node), sans backquote identifier
-    // ie ['define', 'a', ['COMMA', x], null] was passed in from 
-    //  ['BACKQUOTE', ['define', 'a', ['COMMA', x], null]]
-    var i;
-    var quoted_expression = [];
+// function expandbq(bq, env) {
+//     // passed the entire backquoted object (ast node), sans backquote identifier
+//     // ie ['define', 'a', ['COMMA', x], null] was passed in from 
+//     //  ['BACKQUOTE', ['define', 'a', ['COMMA', x], null]]
+//     var i;
+//     var quoted_expression = [];
     
-    // find unquoted symbols and expressions in the expression
-    for (i=0;i<bq.length;i++) {
-	var elem = bq[i];
-	if (predicates.is_array(elem)) { // sexp 
-	    if (predicates.is_comma_escaped(elem)) { 
+//     // find unquoted symbols and expressions in the expression
+//     for (i=0;i<bq.length;i++) {
+// 	var elem = bq[i];
+// 	if (predicates.is_array(elem)) { // sexp 
+// 	    if (predicates.is_comma_escaped(elem)) { 
                 
-                // substitute all vars with values in env
+//                 // substitute all vars with values in env
                 
-                // fully evaluate expression to JavaScript 
+//                 // fully evaluate expression to JavaScript 
                 
-                // then eval JavaScript and return value
+//                 // then eval JavaScript and return value
                 
-		quoted_expression.push(macro_eval(car(cdr(elem)), env)); // eval escaped s-exp, with env
+// 		quoted_expression.push(macro_eval(car(cdr(elem)), env)); // eval escaped s-exp, with env
                 
-	    } else { // this node is still backquoted
-		quoted_expression.push(expandbq(elem, env));
-	    }
-	} else { // elem is another symbol 
-	    quoted_expression.push(elem);
-        }
-    }
-        return quoted_expression;
-}
+// 	    } else { // this node is still backquoted
+// 		quoted_expression.push(expandbq(elem, env));
+// 	    }
+// 	} else { // elem is another symbol 
+// 	    quoted_expression.push(elem);
+//         }
+//     }
+//         return quoted_expression;
+// }
 
 function schript(text) {
     // given Scheme, output JavaScript
@@ -452,8 +456,8 @@ exports.cons = cons;
 exports.ast_to_js = ast_to_js;
 exports.bindings = bindings;
 exports.form_handlers = form_handlers;
-exports.expandbq = expandbq;
-
+// exports.expandbq = expandbq;
+exports.expand_vars = expand_vars;
 
 // var ast = ['define', 'foo', '"ham"', null];
 // var expected_output = 'var foo = "ham";';
