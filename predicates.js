@@ -39,6 +39,10 @@ function is_comma_escaped(node) {
     return (node[0] === 'COMMA');
 }
 
+function is_ast_meta_elem(node) {
+    return is_comma_escaped(node) || is_backquoted(node) || is_forward_quoted(node);
+}
+
 function is_quoted(node) {
     return ((is_forward_quoted(node)) || (is_backquoted(node)));
 }
@@ -88,7 +92,7 @@ function is_quoted_twice(string) {
 			   ending = true;
 		       }
 		   });
-    if ((beginning == true) && (ending == true)) { // check that groups match, if they don't match: throw error
+    if ((beginning == true) && (ending == true)) { // check that groups match
 	return true;
     } else {
 	return false;
@@ -134,6 +138,8 @@ exports.is_quoted = is_quoted;
 exports.is_forward_quoted = is_forward_quoted;
 exports.is_backquoted = is_backquoted;
 exports.is_comma_escaped = is_comma_escaped;
+exports.is_ast_meta_elem = is_ast_meta_elem;
+
 
 // console.log("given: ", '\""hammer"\"'); 
 // console.log(double_to_single_quoted('"hammer"'));

@@ -75,12 +75,12 @@ exports.parse = parse;
 exports.separate_sexps = separate_sexps;
 ////////////////////////////////////////////////////////////////////////////////
 
-var input = "(define x 27)(define y 9)(+ x y)";
-var tokenized_all = tokenize(input);
-var separated_sexps = separate_sexps(tokenized_all);
+// var input = "(define x 27)(define y 9)(+ x y)";
+// var tokenized_all = tokenize(input);
+// var separated_sexps = separate_sexps(tokenized_all);
 
 
 
-console.log(tokenized_all);
-console.log(separated_sexps);
+// console.log(tokenized_all);
+// console.log(separated_sexps);
 
