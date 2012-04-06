@@ -377,14 +377,14 @@ function expand_vars(node, env) {
     return expanded_node;
 }           
 
-//var input = ['define', 'a', ['COMMA', ['+', 'x', 99, null]], null];
- var input = ['define', 'a', ['COMMA', 'x'], null];
-// var expected_ouput = ['define', 'a', 8, null];
-var LOCAL_ENV = {
-    x: 8
-};
-console.log("input : ", input);
-console.log("output: ", expand_vars(input, LOCAL_ENV));
+// //var input = ['define', 'a', ['COMMA', ['+', 'x', 99, null]], null];
+//  var input = ['define', 'a', ['COMMA', 'x'], null];
+// // var expected_ouput = ['define', 'a', 8, null];
+// var LOCAL_ENV = {
+//     x: 8
+// };
+// console.log("input : ", input);
+// console.log("output: ", expand_vars(input, LOCAL_ENV));
 
 
 
@@ -469,9 +469,9 @@ exports.expand_vars = expand_vars;
 
 
 
-// var input = "(define x 27)(define y 9)(+ x y)";
-// var output = schript(input);
-// console.log(output);
+var input = "(define x 27)(define y 9)(+ x y)";
+var output = schript(input);
+console.log(output);
 
 
 
