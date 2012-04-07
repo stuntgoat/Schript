@@ -103,9 +103,13 @@ exports.parse = parse;
 // var input = "(define (recurs x) (if (= x 0) x (+ x (recurs (- x 1)))))";
 // // var input = "(define (recurs x) (if (= x 0) x (+ x (recurs (- x 1)))))";
 // // // var input = "(define x 27)(define y 9)(+ x y)";
-// var tokenized_all = tokenize(input);
-// var ast = parse(tokenized_all);
+
+var input = "((lambda (x) (* x x)) 2))";
+// var input = "(lambda () (* 90 3))";
+
+var tokenized_all = tokenize(input);
+var ast = parse(tokenized_all);
 
 
 // //console.log(tokenized_all);
-// console.log(ast);
+// console.log(ast[0]);

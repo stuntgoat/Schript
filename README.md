@@ -17,5 +17,11 @@ EXAMPLES:
     > console.log(schript(input));
     var recurse = function (x) {return function () { if ((x === 0)) { return x; } else { return (x+recurse(x-1)); }}();};
 
+    > var input = "(lambda (x) (* x x))";
+    > console.log(schript(input));
+    function(x){ return (x*x)};
+
+
+
 
 There are 29 tests, using Mocha and Chai, which are test and assertion libraries, respectively.

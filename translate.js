@@ -52,45 +52,32 @@ function ast_to_js(sexp, env) {
     // TODO: - use is_within_env instead of a series of ifs
     //       - lowercase the car(sexp)
     //       - if an atom or a sexp is quoted ['QUOTE', 9] <= '9 and ['QUOTE', [9, 4, null]] <= '(9 4)
-    console.log("sexp in ast_to_js", sexp);
-    console.log("env: ", env);
-
     if (predicates.is_array(sexp)) {
 	if (bindings[car(sexp)]) {
 	    return bindings[car(sexp)](cdr(sexp), env); // Added env to bindings in generate math_operator
 	} else if (form_handlers[car(sexp)]) { 
-            console.log('sending to form_handlers: ', cdr(sexp));
-            
-	    return form_handlers[car(sexp)](cdr(sexp), env);
 
+	    return form_handlers[car(sexp)](cdr(sexp), env); 
 	} else if (((sexp.length === 2)) && (sexp[1] === null)) { // a list of one value, not in bindings
 	    return ast_to_js(car(sexp), env);
 	} else if (env.hasOwnProperty(car(sexp))) {
-
-            console.log("env.hasOwnProperty(car(sexp))", sexp);
-
             // if this is an expression and car(sexp) is in env, pass as a procedure
-
             if (env[car(sexp)] === "tmp") { // function calling itself
                 return car(sexp) + ast_to_js(car(cdr(sexp)), env);
             } else {
             return env[car(sexp)](cdr(sexp), env); // NEEDS TESTS!!!
             }
-
+        } else if (bindings.hasOwnProperty(car(car(sexp)))) { // probably a lambda with arguments
+            return bindings[car(car(sexp))](car(sexp), env, cdr(sexp));
         } else {
-            
-
 	    throw new Error('in ' + sexp + ' ' + car(sexp) + ' not supported');
         }
 
     } else if (env.hasOwnProperty(sexp)) {
-        console.log("env.hasOwnProperty(sexp)", sexp);
         return sexp; // return the variable name; value is in env
     } else if (predicates.is_number(sexp)) {
-        console.log("predicates.is_number(sexp)", sexp);
         return sexp;
     } else if (predicates.is_quoted_twice(sexp)) {
-        console.log("predicates.is_quoted_twice(sexp)", sexp);
         return sexp; // a string???
     } else {
 //        return "TYPE NOT FOUND";
@@ -98,54 +85,41 @@ function ast_to_js(sexp, env) {
     }
 }
 
-function unquote_symbols(string) {
-    var expression = '';
-    var current_stack = [];
-    var i;
-    var split_string = string.split('');
-    for (i=0; i<split_string.length; i++) {
-	// if item has quotes, remove them or leave them based on 2 conditions.
-	// use predicates
-    }
-    return expression;
+function translate_let(lexp, env) {
+    
+
+
 }
 
-////////////////////////////////////////////////////////////////////////////////
-function scheme_data_to_js(scheme_data) {
-    // return the unevaluated Scheme data as JavaScript data
-    // print identifiers as they are
-    // TODO: print quoted identifiers
-    // print Scheme strings as quoted strings
-    // recursively traverse tree and unquote strings for JavaScript representation after JSON.stringify is called
-    var i;
-    var output = '[';
-    var tmp = [];
-    for (i=0; i<scheme_data.length; i++) {
-	if (predicates.is_array(scheme_data[i])) {
-	    tmp.push(scheme_data_to_js(scheme_data[i]));
-	} else if ( (i == (scheme_data.length - 1)) && predicates.is_null(scheme_data[i])) {
-	    tmp.push('null');
-	} else {
-	    if (predicates.is_quoted(scheme_data[i])) {
-		tmp.push(scheme_data[i]);
-	    } else {
-		tmp.push(scheme_data[i].toString());		
-	    }
-	}
+
+function lambda(lexp, env, lambda_args) { 
+    // lambda in bindings
+    var lambda_statement = ''; // the JavaScript translation
+    var lambda_expression; // the lambda expression 
+    var lambda_var_args; // the variable arguments passed to lambda statement
+    lambda_statement += 'function';
+    lambda_expression = car(cdr(cdr(lexp)));
+    debugger;
+    if (lambda_args === undefined) { // passed lexp w/o args
+        lambda_expression = car(cdr(lexp));
+        // define function within environment
+        lambda_statement += "()";
+        return lambda_statement + "{ return " + ast_to_js(lambda_expression, env) + '};';	
+    } else {
+        lambda_expression = car(cdr(cdr(lexp)));
+        lambda_var_args = car(cdr(lexp));
+        lambda_statement += "(" + list_arguments(lambda_var_args) + ")";
+        return lambda_statement + "{ return " + ast_to_js(lambda_expression, env) + "}(" + list_arguments(lambda_args) + ");";
     }
-    output += tmp.join(",");
-    output += "]";
-    return output;
-    // parse out the quotes unless the string is quoted. That is,
-    // if a string is quoted with one quote on each end, remove them because
-    // this string is not meant to be quoted- it is meant to be a symbol ( eg within an environment context )
-};
+}
 
 function is_within_env(arg, env) { // WARNING, MAY FAIL; needs refactor where called
     return (bindings[arg] || form_handlers[arg] || env[arg]);
 }
 
 function list_arguments(arguments) {
+    // given an ast, output the values joined with ','. exluding null, which should be
+    // the last element of the ast.
     var args_with_commas;
     if (arguments[(arguments.length - 1)] === null) {
 	arguments.pop();
@@ -161,21 +135,21 @@ function translate_if(cdr_if, env) {
     var expression = '';
     var fexp = car(cdr(cdr(cdr_if)));
     var texp = car(cdr(cdr_if));
-    // console.log('conditional', conditional);console.log('true expr', texp); console.log('false expr', fexp);
+
     expression += 'function () { if (' + ast_to_js(conditional, env) + ') { return ' + ast_to_js(texp, env) + '; }'; 
     expression += ' else { return ' + ast_to_js(fexp, env) + '; }}()'; 
     return expression;
 }
 				   
 function define(cdr_define, env) { // pass env to define???
-    console.log("called define", cdr_define);
+
     var expression = '';
     var procedure_args;
     var procedure_expr;
     var procedure_name;
     // variable and expression/value or (function arguments) expression
     if (predicates.is_array(car(cdr_define))) {
-        console.log("defining function", cdr_define);
+
         
 	// we are defining a procedure that takes args
 	procedure_name = car(car(cdr_define));
@@ -258,7 +232,9 @@ var bindings = {
     '>': generate_compare('>'),
     '>=': generate_compare('>='),
     '=': generate_compare('==='),
-    '<=': generate_compare('<=')
+    '<=': generate_compare('<='),
+    lambda: lambda,
+    'BACKQUOTE': expand_vars
 };
 
 function add_binding_procedure(name, binding) {
@@ -349,6 +325,36 @@ function generate_compare(op) {
         return statement;
     };
 }
+////////////////////////////////////////////////////////////////////////////////
+function scheme_data_to_js(scheme_data) {
+    // return the unevaluated Scheme data as JavaScript data
+    // print identifiers as they are
+    // TODO: print quoted identifiers
+    // print Scheme strings as quoted strings
+    // recursively traverse tree and unquote strings for JavaScript representation after JSON.stringify is called
+    var i;
+    var output = '[';
+    var tmp = [];
+    for (i=0; i<scheme_data.length; i++) {
+	if (predicates.is_array(scheme_data[i])) {
+	    tmp.push(scheme_data_to_js(scheme_data[i]));
+	} else if ( (i == (scheme_data.length - 1)) && predicates.is_null(scheme_data[i])) {
+	    tmp.push('null');
+	} else {
+	    if (predicates.is_quoted(scheme_data[i])) {
+		tmp.push(scheme_data[i]);
+	    } else {
+		tmp.push(scheme_data[i].toString());		
+	    }
+	}
+    }
+    output += tmp.join(",");
+    output += "]";
+    return output;
+    // parse out the quotes unless the string is quoted. That is,
+    // if a string is quoted with one quote on each end, remove them because
+    // this string is not meant to be quoted- it is meant to be a symbol ( eg within an environment context )
+};
 
 function double_to_single_quoted(string) {
     // TODO: check that the quote comes at the ends of the string and that the 
@@ -372,9 +378,9 @@ function expand_vars(node, env) {
     var expanded_node = []; // the evaluated node
     if (predicates.is_array(node)) {
         if (predicates.is_comma_escaped(node)) { //  is escaped s-exp or var
-            console.log("is comma escaped", node);
+
             if (predicates.is_array(car(cdr(node)))) { // is expression?
-                console.log("is expression ", car(cdr(node)));
+
                 return expand_vars(car(cdr(node)), env);
             } else if (env.hasOwnProperty(car(cdr(node)))) { // symbol in env?
                 return env[car(cdr(node))];
@@ -383,7 +389,7 @@ function expand_vars(node, env) {
             }
         } else { // not escaped, but still an array so iterate over and expand vars
             for (i=0; i<node.length; i++) { 
-                console.log("node[i]: ", node[i]);
+
                 expanded_node.push(expand_vars(node[i], env));
             }
             return expanded_node;
@@ -402,7 +408,7 @@ function schript(text) {
     var LOCAL_ENV = {}; // the local environment
     var tokens = tokenize(text); // all tokens
     var sexps = parser.parse(tokens); // Arrays s-exps as tokens
-    print("the sexps!: ", sexps);
+
     var JS = '';
     for (i=0; i< sexps.length; i++) {
         JS += ast_to_js(sexps[i], LOCAL_ENV) + '\n';
@@ -410,9 +416,6 @@ function schript(text) {
     
     return JS;
 }
-
-// var input = "(define (recurs x) (if (= x 0) x (+ x (recurs (- x 1)))))";
-// print(schript(input));
 
 exports.car = car;
 exports.cdr = cdr;
@@ -424,26 +427,15 @@ exports.expand_vars = expand_vars;
 exports.schript = schript;
 
 
-//var input = "(define (recurs x) (= 8 x))";
-//var input = "(define (recurs x) (if (= x 0) x (+ x (recurs (- x 1)))))";
-
-// var input = "(define x 27)(define y 9)(+ x y)";
-
-
-// var output = schript(input);
-// console.log(output);
-
-// // ((lambda (x) (* x x)) 2)
-// var lambda_1 = [['lambda', ['x', null], ['*', 'x', 'x', null]], 2, null];
-
-// // (lambda () (* 90 3))
-// var lambda_2 = ['lambda', null, ['*', 90, 3, null], null]; // lambda passed an empty list
-// var lambda_3 = ['lambda', [null], ['*', 90, 3, null], null]; // lambda passed a list of null 
-
 // // (list 2 4 5)
 // var list_1 = ['list', 2, 4, 5, null];
 
 // TODO:
 // (define m (let ((x 0)) (lambda () (set! x (+ x 1)))))
 // 
+
+
+// TODO:
+// (let ((y 8)(z 7)) (* y z) (+ y z))
+
 

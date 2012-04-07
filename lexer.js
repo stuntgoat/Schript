@@ -116,6 +116,6 @@ var tokenize = exports.tokenize = function tokenize(expression) {
                            return '';
                        });
     return tokens;
-}                             
+};                             
 
 

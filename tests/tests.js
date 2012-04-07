@@ -203,16 +203,33 @@ suite('translate.js',
 	           assert.deepEqual(expected_ouput, translate.ast_to_js(input, null));
 	       });
 
-	  test('AST to JS: procedure: backquoted s-expressions: single escaped variable', 
-               function () {
+	  test('AST manipulation: backquoted s-expressions: single escaped variable', 
+               function () { 
 		   var input = ['define', 'a', ['COMMA', 'x'], null];
 		   var expected_ouput = ['define', 'a', 8, null];
                    var LOCAL_ENV = {
                        x: 8
                    };
-	           assert.deepEqual(expected_ouput, translate.expand_vars(input, LOCAL_ENV)); 
+	           assert.deepEqual(expected_ouput, translate.expand_vars(input, LOCAL_ENV));
                    delete LOCAL_ENV;
 	       });
+
+	  // test('AST manipulation: backquoted s-expressions: single escaped variable', 
+          //      function () { 
+	  //          var input = ['define', 'a', ['COMMA', 'x'], null];
+	  //          var expected_ouput = ['define', 'a', 8, null];
+          //          var LOCAL_ENV = {
+          //              x: 8
+          //          };
+	  //          assert.deepEqual(expected_ouput, translate.expand_vars(input, LOCAL_ENV));
+          //          assert.deepEqual(LOCAL_ENV['a'], 8);
+          //          delete LOCAL_ENV;
+	  //      });
+
+          
+          
+
+
  
  	  test('AST to JS: procedure: backquoted s-expressions: escaped expression and escaped var', 
                function () {
@@ -265,31 +282,24 @@ suite('translate.js',
 	           assert.deepEqual(expected_ouput, output);
                    delete LOCAL_ENV;
 	       });
+
+	  test('Scheme to JS: lambda zero args', 
+               function () {
+                   var input = "(lambda () (* 90 3))";
+	           var expected_ouput = "function(){ return (90*3)};\n";
+                   var output = translate.schript(input, {});
+	           assert.deepEqual(expected_ouput, output);
+	       });
+
+	  test('Scheme to JS: lambda zero args', 
+               function () {
+                   var input = "((lambda (x) (* x x)) 2))";
+	           var expected_ouput = "function(x){ return (x*x)}(2);\n";
+                   var output = translate.schript(input, {});
+	           assert.deepEqual(expected_ouput, output);
+	       });
+
       });
 
 
-
-// suite('Macros: ', 
-//       function () {
-//           test('Given a macro expression, return an AST object ', 
-//                function () {
-//                    var macro_expand = require("../macro_expand.js");
-//                    var macro_args = ['"string_of_characters"', 'length'];
-
-//                    var reverse_macro = { 
-//                        args: ['a', 'b'], // this is the args list passed to reverse
-//                        expression: [ '`(', ',b',',a', ')'] // this is the macro expression to expand
-//                    };
-
-//                    var expected_output = {
-//                        'func': 'length',
-//                        'args': ['"string_of_characters"']
-//                    };
-//                    var expanded = macro_expand.macro_expand(reverse_macro, macro_args);
-//                    assert.deepEqual(expanded, expected_output);
-//                    // assert.deepEqual(1, 1);
-//                });
-//       });
-
-// (let ((y 8)(z 7)) (* y z) (+ y z))
 
