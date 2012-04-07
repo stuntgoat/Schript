@@ -82,7 +82,7 @@ suite('parser.js',
                function (){
                    // "(- a(*(- 4 -6)-3 4)99)";
 	           var tokens = ['(', '-', 'a', '(', '*', '(', '-', 4, -6, ')', -3, 4, ')', 99, ')'];
-                   var expected_output = ['-', 'a', ['*', ['-', 4, -6, null], -3, 4, null], 99, null ];
+                   var expected_output = [['-', 'a', ['*', ['-', 4, -6, null], -3, 4, null], 99, null ]];
                    console.log('input:', tokens);                   
                    console.log('output:', parser.parse(tokens));
 		   console.log('\n');
@@ -92,7 +92,7 @@ suite('parser.js',
           test('parse define expression that delcares one variable', 
                function (){
 	           var tokens = ['(', 'define', 'foo', 2, ')'];
-	           var expected_output = ['define', 'foo', 2, null];
+	           var expected_output = [['define', 'foo', 2, null]];
                    console.log('input:', tokens);
                    console.log('output:', parser.parse(tokens));
 		   console.log('\n');
@@ -102,7 +102,7 @@ suite('parser.js',
           test('parse define: define procedure that accepts 3 variables', 
                function (){
 	           var tokens = ['(', 'define', '(', 'mult_us', 'x', 'y', 'z', ')', '(', '*', 'x', 'y', 'z', ')', ')'];
-	           var expected_output =  ['define', ['mult_us', 'x', 'y', 'z', null], ['*', 'x', 'y', 'z', null], null];
+	           var expected_output =  [['define', ['mult_us', 'x', 'y', 'z', null], ['*', 'x', 'y', 'z', null], null]];
                    console.log('input:', tokens);                   
                    console.log('output:', parser.parse(tokens));
 		   console.log('\n');
@@ -112,7 +112,7 @@ suite('parser.js',
           test('parse define: define procedure that accepts 2 variables', 
                function (){
 	           var tokens = ['(', 'let', '(', '(', 'y', 8, ')', '(', 'z', 7, ')', ')', '(', '*', 'y', 'z', ')', '(', '+', 'y', 'z', ')', ')'];
-	           var expected_output = ['let', [['y', 8, null], ['z', 7, null], null], ['*', 'y', 'z', null], ['+', 'y', 'z', null], null]; 
+	           var expected_output = [['let', [['y', 8, null], ['z', 7, null], null], ['*', 'y', 'z', null], ['+', 'y', 'z', null], null]]; 
 
                    console.log('input:', tokens);                   
                    console.log('output:', parser.parse(tokens));
@@ -225,10 +225,10 @@ suite('translate.js',
                function (){
 		   var ast = ['if', ['<', 2, 5, 8, null], ['+', 9, 9, null], ['-', 9, 9, null], null];
 		   var expected_output = "function () { if ((2 < 5) && (5 < 8)) { return (9+9); } else { return (9-9); }}()";
-                   console.log('input:', ast);                   
-                   console.log('output:', translate.ast_to_js(ast));
+                   console.log('input:', ast);
+                   console.log('output:', translate.ast_to_js(ast, {}));
 		   console.log('\n');
-	           assert.deepEqual(expected_output, translate.ast_to_js(ast));
+	           assert.deepEqual(expected_output, translate.ast_to_js(ast, {}));
 	       });
 
           test('AST to JS: Procedure: if: return value', 
@@ -236,9 +236,9 @@ suite('translate.js',
 		   var ast = ['if', ['<', 2, 5, 8, null], 0, 1, null];
 		   var expected_output = "function () { if ((2 < 5) && (5 < 8)) { return 0; } else { return 1; }}()";
                    console.log('input:', ast);                   
-                   console.log('output:', translate.ast_to_js(ast));
+                   console.log('output:', translate.ast_to_js(ast, {}));
 		   console.log('\n');
-	           assert.deepEqual(expected_output, translate.ast_to_js(ast));
+	           assert.deepEqual(expected_output, translate.ast_to_js(ast, {}));
 	       });
 
           test('AST to JS: procedure: cons: string to list', 
@@ -314,7 +314,9 @@ suite('translate.js',
                        y:92
                    };
 		   console.log("input : ", input);
+
 		   console.log("output: ", translate.expand_vars(input, LOCAL_ENV));
+
 	           assert.deepEqual(expected_ouput, translate.expand_vars(input, LOCAL_ENV)); 
                    delete LOCAL_ENV;
 	       });
@@ -322,27 +324,27 @@ suite('translate.js',
 	  test('Scheme to JS: simple arithmetic', 
                function () {
 		   var input = "(+ 6 77)";
-		   var expected_ouput = "(6+77)";
+		   var expected_ouput = "(6+77)\n";
                    var LOCAL_ENV = {};
-		   console.log("input : ", input);
-                   var lexed = lexer.tokenize(input);
-                   var parsed = parser.parse(lexed);
-                   var output = translate.ast_to_js(parsed, LOCAL_ENV);
+		   console.log("input SIMPLE : ", input);
+                   var output = translate.schript(input, LOCAL_ENV);
+                   console.log("expected_ouput: ", expected_ouput);
 		   console.log("output: ", output);
-	           assert.deepEqual(expected_ouput, output);
+
+	           assert.deepEqual(output, expected_ouput);
                    delete LOCAL_ENV;
 	       });
 
 	  test('Scheme to JS: nested arithmetic', 
                function () {
 		   var input = "(+ 6 77(- 27 9 11))";
-		   var expected_ouput = "(6+77+(27-9-11))";
+		   var expected_ouput = "(6+77+(27-9-11))\n";
                    var LOCAL_ENV = {};
-		   console.log("input : ", input);
-                   var lexed = lexer.tokenize(input);
-                   var parsed = parser.parse(lexed);
-                   var output = translate.ast_to_js(parsed, LOCAL_ENV);
+		   console.log("input NESTED : ", input);
+                   var output = translate.schript(input, LOCAL_ENV);
+                   console.log("expected_ouput: ", expected_ouput);
 		   console.log("output: ", output);
+
 	           assert.deepEqual(expected_ouput, output);
                    delete LOCAL_ENV;
 	       });
@@ -353,17 +355,24 @@ suite('translate.js',
 	  //          var expected_ouput = "";
           //          var LOCAL_ENV = {};
 	  //          console.log("input : ", input);
-          //          var lexed = lexer.tokenize(input);
-          //          var parsed = parser.parse(lexed);
-          //          console.log("parsed: ", parsed);
-          //          var output = translate.ast_to_js(parsed, LOCAL_ENV);
+          //          var output = translate.schript(input, LOCAL_ENV);
 	  //          console.log("output: ", output);
-	  //          // assert.deepEqual(expected_ouput, output);
+	  //          assert.deepEqual(expected_ouput, output);
           //          delete LOCAL_ENV;
 	  //      });
 
-  
-
+	  test('Scheme to JS: recursive function definition', 
+               function () {
+                   var input = "(define (recurs x) (if (= x 0) x (+ x (recurs (- x 1)))))";
+	           var expected_ouput = "var recurs = function (x) {return function () { if ((x === 0)) { return x; } else { return (x+recurs(x-1)); }}();};\n";
+                   var LOCAL_ENV = {};
+	           console.log("input RECURSIVE : ", input);
+                   var output = translate.schript(input, LOCAL_ENV);
+                   console.log("expected_ouput: ", expected_ouput);
+	           console.log("output: ", output);
+	           assert.deepEqual(expected_ouput, output);
+                   delete LOCAL_ENV;
+	       });
       });
 
 

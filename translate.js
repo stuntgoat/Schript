@@ -11,6 +11,9 @@ var lexer = require('./lexer');
 var tokenize = lexer.tokenize;
 var parser = require('./parser');
 
+// debugging
+var print = console.log;
+
 // null 'equals' [], that is they should be interchangable
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -49,19 +52,35 @@ function ast_to_js(sexp, env) {
     // TODO: - use is_within_env instead of a series of ifs
     //       - lowercase the car(sexp)
     //       - if an atom or a sexp is quoted ['QUOTE', 9] <= '9 and ['QUOTE', [9, 4, null]] <= '(9 4)
+    console.log("sexp in ast_to_js", sexp);
+    console.log("env: ", env);
+
     if (predicates.is_array(sexp)) {
 	if (bindings[car(sexp)]) {
 	    return bindings[car(sexp)](cdr(sexp), env); // Added env to bindings in generate math_operator
-	} else if (form_handlers[car(sexp)]) {
+	} else if (form_handlers[car(sexp)]) { 
+            console.log('sending to form_handlers: ', cdr(sexp));
+            
 	    return form_handlers[car(sexp)](cdr(sexp), env);
-	} else if (((sexp.length === 2)) && (sexp[1] === null)) {
-	    // a list of one value, not in bindings
+
+	} else if (((sexp.length === 2)) && (sexp[1] === null)) { // a list of one value, not in bindings
 	    return ast_to_js(car(sexp), env);
 	} else if (env.hasOwnProperty(car(sexp))) {
+
+            console.log("env.hasOwnProperty(car(sexp))", sexp);
+
             // if this is an expression and car(sexp) is in env, pass as a procedure
+
+            if (env[car(sexp)] === "tmp") { // function calling itself
+                return car(sexp) + ast_to_js(car(cdr(sexp)), env);
+            } else {
             return env[car(sexp)](cdr(sexp), env); // NEEDS TESTS!!!
+            }
+
         } else {
-	throw new Error('in ' + sexp + ' ' + car(sexp) + ' not supported');
+            
+
+	    throw new Error('in ' + sexp + ' ' + car(sexp) + ' not supported');
         }
 
     } else if (env.hasOwnProperty(sexp)) {
@@ -137,40 +156,43 @@ function list_arguments(arguments) {
     return args_with_commas;
 }
 
-function translate_if(cdr_if) {
+function translate_if(cdr_if, env) {
     var conditional = car(cdr_if);
     var expression = '';
     var fexp = car(cdr(cdr(cdr_if)));
     var texp = car(cdr(cdr_if));
     // console.log('conditional', conditional);console.log('true expr', texp); console.log('false expr', fexp);
-    expression += 'function () { if (' + ast_to_js(conditional, {}) + ') { return ' + ast_to_js(texp, {}) + '; }'; 
-    expression += ' else { return ' + ast_to_js(fexp, {}) + '; }}()'; 
+    expression += 'function () { if (' + ast_to_js(conditional, env) + ') { return ' + ast_to_js(texp, env) + '; }'; 
+    expression += ' else { return ' + ast_to_js(fexp, env) + '; }}()'; 
     return expression;
 }
 				   
 function define(cdr_define, env) { // pass env to define???
+    console.log("called define", cdr_define);
     var expression = '';
     var procedure_args;
     var procedure_expr;
     var procedure_name;
     // variable and expression/value or (function arguments) expression
     if (predicates.is_array(car(cdr_define))) {
+        console.log("defining function", cdr_define);
+        
 	// we are defining a procedure that takes args
 	procedure_name = car(car(cdr_define));
 	procedure_args = cdr(car(cdr_define));
 	procedure_expr = car(cdr(cdr_define));
 	expression += 'var ' + procedure_name + ' = ';
 	expression += 'function ' +'(' + list_arguments(procedure_args) + ') {';
+	env[procedure_name] = 'tmp';
+
 	expression += 'return ' + ast_to_js(procedure_expr, env) + ';'; 
 	expression += '}';
 	add_binding_procedure(procedure_name, env); 
 	return expression + ';';
-
     } else if (predicates.is_string(car(cdr_define))) {
 	// we are defining something that accepts zero arguments
 	procedure_name = car((cdr_define));
 	procedure_expr = cdr(cdr_define);
-
 	expression += 'var ' + procedure_name + ' = ';
 	if (is_within_env(car(procedure_expr), env)) { // if car expression is in env, pass procedure to ast_to_js
 	    expression += ast_to_js(procedure_expr, env); 
@@ -216,11 +238,15 @@ function translate_cons(cdr_cons) {
     }
 }
 
+// cond
+// 
+
+
+// take from another module
 var form_handlers = {
     define: define,
     'if': translate_if,
     cons: translate_cons // cons scheme to Javascript. cons() works on the AST but translate_cons is for returning scheme data
-    
 };
 
 var bindings = {
@@ -231,6 +257,7 @@ var bindings = {
     '<': generate_compare('<'),
     '>': generate_compare('>'),
     '>=': generate_compare('>='),
+    '=': generate_compare('==='),
     '<=': generate_compare('<=')
 };
 
@@ -282,7 +309,6 @@ function generate_math_operator(op) {
 		break;
 	    } // not at last arg
 	    // support variables that are dynamically loaded into `bindings`
-
 	    if (env[tmp]) { // not working
 		statement += (op + tmp);		
 	    } else { // a number
@@ -294,7 +320,7 @@ function generate_math_operator(op) {
 }
 
 function generate_compare(op) {  
-    return function (args) {
+    return function (args, env) {
         var first;
         var i = 0;
         var arg_length = args.length;
@@ -302,13 +328,13 @@ function generate_compare(op) {
         var statement = '';
 	assert.deepEqual(true, (args.length >= 2));
  	do {
-            first = predicates.is_array(args[i]) ? ast_to_js(args[i], {}) : args[i];
-            second = predicates.is_array(args[i+1]) ? ast_to_js(args[i+1], {}) : args[i+1];
+            first = predicates.is_array(args[i]) ? ast_to_js(args[i], env) : args[i];
+            second = predicates.is_array(args[i+1]) ? ast_to_js(args[i+1], env) : args[i+1];
             if (i === arg_length - 2) { 
                 if (predicates.is_null(second)) {
 		    break;
 		} else if (predicates.is_array(first)) {
-		    statement += (op + ast_to_js(first, {})); 
+		    statement += (op + ast_to_js(first, env)); 
 		} else {
 		    throw new Error(args[i] + ', last item in a list, is not an s-expression or null');
 		}
@@ -344,17 +370,12 @@ function expand_vars(node, env) {
     // values from env
     var i; // counter
     var expanded_node = []; // the evaluated node
-
     if (predicates.is_array(node)) {
-        
         if (predicates.is_comma_escaped(node)) { //  is escaped s-exp or var
             console.log("is comma escaped", node);
             if (predicates.is_array(car(cdr(node)))) { // is expression?
                 console.log("is expression ", car(cdr(node)));
-//                for (i=0; i<node.length; i++) { 
-
                 return expand_vars(car(cdr(node)), env);
-                
             } else if (env.hasOwnProperty(car(cdr(node)))) { // symbol in env?
                 return env[car(cdr(node))];
             } else {
@@ -367,88 +388,31 @@ function expand_vars(node, env) {
             }
             return expanded_node;
         }
-
     } else if (env.hasOwnProperty(node)) { // symbol in env?
         return env[node];
     } else {
         return node;
     }
-    
     return expanded_node;
 }           
 
-// //var input = ['define', 'a', ['COMMA', ['+', 'x', 99, null]], null];
-//  var input = ['define', 'a', ['COMMA', 'x'], null];
-// // var expected_ouput = ['define', 'a', 8, null];
-// var LOCAL_ENV = {
-//     x: 8
-// };
-// console.log("input : ", input);
-// console.log("output: ", expand_vars(input, LOCAL_ENV));
-
-
-
-
-// function macro_eval(node, env) {
-//     // completely evaluate an escaped expression within a backquoted s-expression
-//     // that is, return the value after calling `eval` from within JavaScript
-//     //    console.log(node, env);
-    
-//     // substitute all vars with values in env
-//     // fully evaluate expression to JavaScript 
-//     // then eval JavaScript and return value
-
-    
-//     return eval(ast_to_js(node, env)); // TODO: which env to use???
-// }
-    
-// function expandbq(bq, env) {
-//     // passed the entire backquoted object (ast node), sans backquote identifier
-//     // ie ['define', 'a', ['COMMA', x], null] was passed in from 
-//     //  ['BACKQUOTE', ['define', 'a', ['COMMA', x], null]]
-//     var i;
-//     var quoted_expression = [];
-    
-//     // find unquoted symbols and expressions in the expression
-//     for (i=0;i<bq.length;i++) {
-// 	var elem = bq[i];
-// 	if (predicates.is_array(elem)) { // sexp 
-// 	    if (predicates.is_comma_escaped(elem)) { 
-                
-//                 // substitute all vars with values in env
-                
-//                 // fully evaluate expression to JavaScript 
-                
-//                 // then eval JavaScript and return value
-                
-// 		quoted_expression.push(macro_eval(car(cdr(elem)), env)); // eval escaped s-exp, with env
-                
-// 	    } else { // this node is still backquoted
-// 		quoted_expression.push(expandbq(elem, env));
-// 	    }
-// 	} else { // elem is another symbol 
-// 	    quoted_expression.push(elem);
-//         }
-//     }
-//         return quoted_expression;
-// }
-
 function schript(text) {
     // given Scheme, output JavaScript
-    
     var i; // counter 
     var LOCAL_ENV = {}; // the local environment
     var tokens = tokenize(text); // all tokens
-    var sexps = parser.separate_sexps(tokens); // Arrays s-exps as tokens
+    var sexps = parser.parse(tokens); // Arrays s-exps as tokens
+    print("the sexps!: ", sexps);
     var JS = '';
-    
     for (i=0; i< sexps.length; i++) {
-        var parsed = parser.parse(sexps[i]);
-        JS += ast_to_js(parsed, LOCAL_ENV) + '\n';
+        JS += ast_to_js(sexps[i], LOCAL_ENV) + '\n';
     }
     
     return JS;
 }
+
+// var input = "(define (recurs x) (if (= x 0) x (+ x (recurs (- x 1)))))";
+// print(schript(input));
 
 exports.car = car;
 exports.cdr = cdr;
@@ -456,38 +420,18 @@ exports.cons = cons;
 exports.ast_to_js = ast_to_js;
 exports.bindings = bindings;
 exports.form_handlers = form_handlers;
-// exports.expandbq = expandbq;
 exports.expand_vars = expand_vars;
-
-// var ast = ['define', 'foo', '"ham"', null];
-// var expected_output = 'var foo = "ham";';
-// var LOCAL_ENV = {};
-// console.log('input:', ast);                   
-// console.log('output 1:', ast_to_js(ast, LOCAL_ENV));
-// console.log('LOCAL_ENV:', LOCAL_ENV);                   
+exports.schript = schript;
 
 
+//var input = "(define (recurs x) (= 8 x))";
+//var input = "(define (recurs x) (if (= x 0) x (+ x (recurs (- x 1)))))";
+
+// var input = "(define x 27)(define y 9)(+ x y)";
 
 
-var input = "(define x 27)(define y 9)(+ x y)";
-var output = schript(input);
-console.log(output);
-
-
-
-
-
-// // ("cat")
-// var string_cat = [['STRING', 'cat'], null];
-
-// // '(a 7 "cat") => (a 7 "cat") when evaled at repl
-// var cat = ['QUOTE', ['a', 7, ['STRING', 'cat'], null]];
-
-// // ('a 7 "cat") // an error
-// var unquoted_cat =  [['QUOTE', 'a'], 7, ['STRING', 'cat'], null];
-
-// // (+ 5 6 (- 8 3))
-// var arith_1 = ['+', 5, 6, ['-', 8, 3, null], null];
+// var output = schript(input);
+// console.log(output);
 
 // // ((lambda (x) (* x x)) 2)
 // var lambda_1 = [['lambda', ['x', null], ['*', 'x', 'x', null]], 2, null];
@@ -501,3 +445,5 @@ console.log(output);
 
 // TODO:
 // (define m (let ((x 0)) (lambda () (set! x (+ x 1)))))
+// 
+
