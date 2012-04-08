@@ -1,12 +1,8 @@
 // translate.js
 // Functions to create an abstract syntax tree from an array of Scheme tokens.
-// exports: parse
-// TODO: 
-
 
 var predicates = require('./predicates.js');
 var assert = require('assert');
-
 var lexer = require('./lexer');
 var tokenize = lexer.tokenize;
 var parser = require('./parser');
@@ -56,7 +52,6 @@ function ast_to_js(sexp, env) {
 	if (bindings[car(sexp)]) {
 	    return bindings[car(sexp)](cdr(sexp), env); // Added env to bindings in generate math_operator
 	} else if (form_handlers[car(sexp)]) { 
-
 	    return form_handlers[car(sexp)](cdr(sexp), env); 
 	} else if (((sexp.length === 2)) && (sexp[1] === null)) { // a list of one value, not in bindings
 	    return ast_to_js(car(sexp), env);
@@ -72,7 +67,6 @@ function ast_to_js(sexp, env) {
         } else {
 	    throw new Error('in ' + sexp + ' ' + car(sexp) + ' not supported');
         }
-
     } else if (env.hasOwnProperty(sexp)) {
         return sexp; // return the variable name; value is in env
     } else if (predicates.is_number(sexp)) {
@@ -85,11 +79,55 @@ function ast_to_js(sexp, env) {
     }
 }
 
-function translate_let(lexp, env) {
+
+
+function merge_objects(objs) {
+    // Accepts an array of objects; Returns: a single object
+    // with keys in the previous objects overwritten by the 
+    // next objects in the Array.
+    var obj_stack = {};
+    var i;
+    var o;
+    for (i in objs) {
+	for (o in objs[i]) {
+	    if (objs[i].hasOwnProperty(o)) {
+		obj_stack[o] = objs[i][o];
+	    }	
+	}
+    }
     
-
-
+    return obj_stack;
 }
+// (let ((x 2) (y 3))(* x y))
+// local bindings [ [ 'y', 8, null ], [ 'z', 7, null ], null ]
+// expression_list [ [ '*', 'y', 'z', null ], [ '+', 'y', 'z', null ], null ]
+function translate_let(lexp, env) {
+    // has to return last value
+    var local_bindings = car(lexp);
+    var expression_list = cdr(lexp);
+    var i; // index for each elem in local_bindings and expression_list
+    var let_expression = 'function() {';
+    var tmp_define; // to hold an ast for defining local vars inside let
+    for (vinit in local_bindings) {
+        if (local_bindings[vinit] !== null) {
+            local_bindings[vinit].unshift('define');
+            let_expression += ast_to_js(local_bindings[vinit], env);
+        }
+    }
+    // evaluate expression
+    for (i=0; i<expression_list.length - 1; i++) {
+        console.log("%s %s", typeof (expression_list.length - 2), typeof i);
+
+        if (i === (expression_list.length - 2)) {
+            let_expression += "return " + ast_to_js(expression_list[i], env) + ";";
+        } else {
+            let_expression += ast_to_js(expression_list[i], env) + ";";
+        }
+    }
+
+    return let_expression;
+}
+
 
 
 function lambda(lexp, env, lambda_args) { 
@@ -142,15 +180,12 @@ function translate_if(cdr_if, env) {
 }
 				   
 function define(cdr_define, env) { // pass env to define???
-
     var expression = '';
     var procedure_args;
     var procedure_expr;
     var procedure_name;
     // variable and expression/value or (function arguments) expression
     if (predicates.is_array(car(cdr_define))) {
-
-        
 	// we are defining a procedure that takes args
 	procedure_name = car(car(cdr_define));
 	procedure_args = cdr(car(cdr_define));
@@ -158,7 +193,6 @@ function define(cdr_define, env) { // pass env to define???
 	expression += 'var ' + procedure_name + ' = ';
 	expression += 'function ' +'(' + list_arguments(procedure_args) + ') {';
 	env[procedure_name] = 'tmp';
-
 	expression += 'return ' + ast_to_js(procedure_expr, env) + ';'; 
 	expression += '}';
 	add_binding_procedure(procedure_name, env); 
@@ -212,10 +246,6 @@ function translate_cons(cdr_cons) {
     }
 }
 
-// cond
-// 
-
-
 // take from another module
 var form_handlers = {
     define: define,
@@ -234,7 +264,8 @@ var bindings = {
     '=': generate_compare('==='),
     '<=': generate_compare('<='),
     lambda: lambda,
-    'BACKQUOTE': expand_vars
+    'BACKQUOTE': expand_vars,
+    'let': translate_let
 };
 
 function add_binding_procedure(name, binding) {
@@ -436,6 +467,6 @@ exports.schript = schript;
 
 
 // TODO:
-// (let ((y 8)(z 7)) (* y z) (+ y z))
-
+var input =  "(let ((y 8)(z 7)) (* y z) (+ y z))";
+console.log(schript(input));
 

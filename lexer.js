@@ -1,11 +1,8 @@
 // lexer.js
 // functions to tokenize a Scheme expression
 
-// TODO: - check for orphan paren, throw error
-//       - check for illegal characters
-//       - chech for misc. syntax errors
 
-// Tuesday - lexer lookup table: finish
+
 
 function token_identity(token) {
     return token;

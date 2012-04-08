@@ -106,10 +106,10 @@ exports.parse = parse;
 
 var input = "((lambda (x) (* x x)) 2))";
 // var input = "(lambda () (* 90 3))";
-
+var input = "(let ((x 2) (y 3))(* x y))";
 var tokenized_all = tokenize(input);
 var ast = parse(tokenized_all);
 
 
 // //console.log(tokenized_all);
-// console.log(ast[0]);
+console.log(ast[0]);
