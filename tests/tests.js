@@ -276,9 +276,17 @@ suite('translate.js',
 	  test('Scheme to JS: recursive function definition', 
                function () {
                    var input = "(define (recurs x) (if (= x 0) x (+ x (recurs (- x 1)))))";
-	           var expected_ouput = "var recurs = function (x) {return function () { if ((x === 0)) { return x; } else { return (x+recurs(x-1)); }}();};\n";
-                   var LOCAL_ENV = {};
-                   var output = translate.schript(input, LOCAL_ENV);
+	           var expected_ouput = "var recurs = function (x) {return function () { if ((x === 0)) { return x; } else { return (x+recurs((x-1))); }}();};\n";
+                   var output = translate.schript(input, {});
+	           assert.deepEqual(expected_ouput, output);
+                   delete LOCAL_ENV;
+	       });
+
+	  test('Scheme to JS: iterive function definition', 
+               function () {
+                   var input = "(define (fact n total) (if (= n 0) total (fact (- n 1) (* n total))))";
+	           var expected_ouput = "var fact = function (n, total) {return function () { if ((n === 0)) { return total; } else { return fact((n-1),(n*total)); }}();};\n";
+                   var output = translate.schript(input, {});
 	           assert.deepEqual(expected_ouput, output);
                    delete LOCAL_ENV;
 	       });
@@ -298,6 +306,16 @@ suite('translate.js',
                    var output = translate.schript(input, {});
 	           assert.deepEqual(expected_ouput, output);
 	       });
+
+	  test('Scheme to JS: let procedure', 
+               function () {
+                   var input =  "(let ((y 8)(z 7)) (* y z) (+ y z))";
+	           var expected_ouput = "function() {var y = 8;var z = 7;(y*z);return (y+z);\n";
+                   var output = translate.schript(input, {});
+	           assert.deepEqual(expected_ouput, output);
+	       });
+
+
 
       });
 

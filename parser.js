@@ -104,12 +104,13 @@ exports.parse = parse;
 // // var input = "(define (recurs x) (if (= x 0) x (+ x (recurs (- x 1)))))";
 // // // var input = "(define x 27)(define y 9)(+ x y)";
 
-var input = "((lambda (x) (* x x)) 2))";
-// var input = "(lambda () (* 90 3))";
-var input = "(let ((x 2) (y 3))(* x y))";
-var tokenized_all = tokenize(input);
-var ast = parse(tokenized_all);
+// var input = "(define Y(lambda (f)((lambda (recur) (f (lambda arg (apply (recur recur) arg)))) (lambda (recur) (f (lambda arg (apply (recur recur) arg)))))))";
+// // var input = "((lambda (x) (* x x)) 2))";
+// // var input = "(lambda () (* 90 3))";
+// // var input = "(let ((x 2) (y 3))(* x y))";
+// var tokenized_all = tokenize(input);
+// var ast = parse(tokenized_all);
 
 
-// //console.log(tokenized_all);
-console.log(ast[0]);
+//console.log(tokenized_all);
+//console.log(JSON.stringify(ast[0]));

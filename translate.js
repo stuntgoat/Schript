@@ -48,6 +48,9 @@ function ast_to_js(sexp, env) {
     // TODO: - use is_within_env instead of a series of ifs
     //       - lowercase the car(sexp)
     //       - if an atom or a sexp is quoted ['QUOTE', 9] <= '9 and ['QUOTE', [9, 4, null]] <= '(9 4)
+    var i; // for loop counter
+    var tmp_js = []; // placeholder for evaluated JS
+    
     if (predicates.is_array(sexp)) {
 	if (bindings[car(sexp)]) {
 	    return bindings[car(sexp)](cdr(sexp), env); // Added env to bindings in generate math_operator
@@ -58,7 +61,20 @@ function ast_to_js(sexp, env) {
 	} else if (env.hasOwnProperty(car(sexp))) {
             // if this is an expression and car(sexp) is in env, pass as a procedure
             if (env[car(sexp)] === "tmp") { // function calling itself
-                return car(sexp) + ast_to_js(car(cdr(sexp)), env);
+                // multiple arguments to function calling itself recursively
+                if (cdr(sexp).length > 2) {
+                    for (i=0; i<cdr(sexp).length; i++) {
+                        if (cdr(sexp)[i] === null) {
+                            continue;
+                        } else {
+                            tmp_js.push(ast_to_js(cdr(sexp)[i], env));
+                        }
+                    }
+                    return car(sexp) + "(" + tmp_js.join(",") + ")";
+                }
+                // a single argument
+                return car(sexp) + "(" + ast_to_js(car(cdr(sexp)), env) + ")";
+
             } else {
             return env[car(sexp)](cdr(sexp), env); // NEEDS TESTS!!!
             }
@@ -73,31 +89,15 @@ function ast_to_js(sexp, env) {
         return sexp;
     } else if (predicates.is_quoted_twice(sexp)) {
         return sexp; // a string???
+    } else if (sexp === null) {
+        return '';
     } else {
-//        return "TYPE NOT FOUND";
-          return sexp;  
+        //        return "TYPE NOT FOUND";
+        return sexp;  
     }
 }
 
 
-
-function merge_objects(objs) {
-    // Accepts an array of objects; Returns: a single object
-    // with keys in the previous objects overwritten by the 
-    // next objects in the Array.
-    var obj_stack = {};
-    var i;
-    var o;
-    for (i in objs) {
-	for (o in objs[i]) {
-	    if (objs[i].hasOwnProperty(o)) {
-		obj_stack[o] = objs[i][o];
-	    }	
-	}
-    }
-    
-    return obj_stack;
-}
 // (let ((x 2) (y 3))(* x y))
 // local bindings [ [ 'y', 8, null ], [ 'z', 7, null ], null ]
 // expression_list [ [ '*', 'y', 'z', null ], [ '+', 'y', 'z', null ], null ]
@@ -107,7 +107,7 @@ function translate_let(lexp, env) {
     var expression_list = cdr(lexp);
     var i; // index for each elem in local_bindings and expression_list
     var let_expression = 'function() {';
-    var tmp_define; // to hold an ast for defining local vars inside let
+    var vinit;
     for (vinit in local_bindings) {
         if (local_bindings[vinit] !== null) {
             local_bindings[vinit].unshift('define');
@@ -116,19 +116,14 @@ function translate_let(lexp, env) {
     }
     // evaluate expression
     for (i=0; i<expression_list.length - 1; i++) {
-        console.log("%s %s", typeof (expression_list.length - 2), typeof i);
-
         if (i === (expression_list.length - 2)) {
             let_expression += "return " + ast_to_js(expression_list[i], env) + ";";
         } else {
             let_expression += ast_to_js(expression_list[i], env) + ";";
         }
     }
-
     return let_expression;
 }
-
-
 
 function lambda(lexp, env, lambda_args) { 
     // lambda in bindings
@@ -467,6 +462,7 @@ exports.schript = schript;
 
 
 // TODO:
-var input =  "(let ((y 8)(z 7)) (* y z) (+ y z))";
+// var input =  "(let ((y 8)(z 7)) (* y z) (+ y z))";
+var input = "(define (fact n total) (if (= n 0) total (fact (- n 1) (* n total))))";
 console.log(schript(input));
 
