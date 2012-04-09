@@ -130,19 +130,27 @@ function lambda(lexp, env, lambda_args) {
     var lambda_statement = ''; // the JavaScript translation
     var lambda_expression; // the lambda expression 
     var lambda_var_args; // the variable arguments passed to lambda statement
+    var i; // lambda variable argument counter
     lambda_statement += 'function';
     lambda_expression = car(cdr(cdr(lexp)));
     debugger;
-    if (lambda_args === undefined) { // passed lexp w/o args
+    if (lambda_args === undefined) { // passed lexp w/o passed in values per arg
         lambda_expression = car(cdr(lexp));
-        // define function within environment
-        lambda_statement += "()";
-        return lambda_statement + "{ return " + ast_to_js(lambda_expression, env) + '};';	
-    } else {
+        lambda_var_args = car(lexp);
+        if ((car(lambda_var_args) === null) && (lambda_var_args.length === 1)) {
+            lambda_statement += "()";            
+        } else {
+              lambda_statement += "(" + list_arguments(lambda_var_args) + ")";
+        }
+
+        lambda_statement += "{ return " + ast_to_js(lambda_expression, env) + '};';	
+        return lambda_statement;
+    } else { // lambda is passed in arguments
         lambda_expression = car(cdr(cdr(lexp)));
         lambda_var_args = car(cdr(lexp));
         lambda_statement += "(" + list_arguments(lambda_var_args) + ")";
-        return lambda_statement + "{ return " + ast_to_js(lambda_expression, env) + "}(" + list_arguments(lambda_args) + ");";
+        lambda_statement += "{ return " + ast_to_js(lambda_expression, env) + "}(" + list_arguments(lambda_args) + ");";
+        return lambda_statement;
     }
 }
 
@@ -463,6 +471,6 @@ exports.schript = schript;
 
 // TODO:
 // var input =  "(let ((y 8)(z 7)) (* y z) (+ y z))";
-var input = "(define (fact n total) (if (= n 0) total (fact (- n 1) (* n total))))";
-console.log(schript(input));
+// var input = "(define (fact n total) (if (= n 0) total (fact (- n 1) (* n total))))";
+// console.log(schript(input));
 

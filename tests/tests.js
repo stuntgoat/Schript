@@ -299,10 +299,26 @@ suite('translate.js',
 	           assert.deepEqual(expected_ouput, output);
 	       });
 
-	  test('Scheme to JS: lambda zero args', 
+	  test('Scheme to JS: lambda one arg', 
                function () {
                    var input = "((lambda (x) (* x x)) 2))";
 	           var expected_ouput = "function(x){ return (x*x)}(2);\n";
+                   var output = translate.schript(input, {});
+	           assert.deepEqual(expected_ouput, output);
+	       });
+
+	  test('Scheme to JS: lambda 3 args not called with any arguments', 
+               function () {
+                   var input = "((lambda (x y z) (* x (+ y (- z 100)))))";
+	           var expected_ouput = "function(x, y, z){ return (x*(y+(z-100)))};\n";
+                   var output = translate.schript(input, {});
+	           assert.deepEqual(expected_ouput, output);
+	       });
+
+	  test('Scheme to JS: lambda 3 args: call with 3 values', 
+               function () {
+                   var input = "((lambda (x y z) (* x y (* x z))) 2 3 4)";
+	           var expected_ouput = "function(x, y, z){ return (x*y*(x*z))}(2, 3, 4);\n";
                    var output = translate.schript(input, {});
 	           assert.deepEqual(expected_ouput, output);
 	       });
@@ -314,8 +330,6 @@ suite('translate.js',
                    var output = translate.schript(input, {});
 	           assert.deepEqual(expected_ouput, output);
 	       });
-
-
 
       });
 
