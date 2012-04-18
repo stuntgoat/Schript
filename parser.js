@@ -10,7 +10,6 @@ var print = console.log;
 function separate_sexps(tokens) {
     // parse a token array that contains several, non-nested s-expressions.
     // return all top-level s-expressions, each in an Array, in a single Array. 
-//    print(tokens);
     var i;
     var tmp_stack = [];
     var stack_stack = [];
@@ -20,20 +19,13 @@ function separate_sexps(tokens) {
         if (predicates.is_lparen(tokens[i])) { // entering new depth
             stack_depth += 1;
             tmp_stack.push(tokens[i]);
-//            print("left paren: ", tokens[i]);
-//            print(stack_depth);
             continue;
-
         } else if (predicates.is_rparen(tokens[i])) { 
-            tmp_stack.push(tokens[i]); // push token to tmp_stack
-
-
-//            print("right paren: ", tokens[i]); 
-//            print(stack_depth);
-            stack_depth -= 1; // decrement depth
+            tmp_stack.push(tokens[i]);
+            stack_depth -= 1; 
 
             if (stack_depth === 0) { // leaving top-level s-exp
-                stack_stack.push(tmp_stack); // add tmp_stack to stack_stack
+                stack_stack.push(tmp_stack);
                 tmp_stack = [];
                 continue;
             }
@@ -80,8 +72,6 @@ var parse_statement = function (tokens) {
     }
     return ast_stack[stack_depth];
 };
-
-// if number of statements is > 1, return AST from separate_sexps, else return ast from parse
 
 function parse(tokens) {
     // return an array of ast objects from any scheme tokens

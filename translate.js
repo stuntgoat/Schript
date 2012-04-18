@@ -54,8 +54,6 @@ function ast_to_js(sexp, env) {
     if (predicates.is_array(sexp)) {
 	if (bindings[car(sexp)]) {
 	    return bindings[car(sexp)](cdr(sexp), env); // Added env to bindings in generate math_operator
-	} else if (form_handlers[car(sexp)]) { 
-	    return form_handlers[car(sexp)](cdr(sexp), env); 
 	} else if (((sexp.length === 2)) && (sexp[1] === null)) { // a list of one value, not in bindings
 	    return ast_to_js(car(sexp), env);
 	} else if (env.hasOwnProperty(car(sexp))) {
@@ -155,7 +153,7 @@ function lambda(lexp, env, lambda_args) {
 }
 
 function is_within_env(arg, env) { // WARNING, MAY FAIL; needs refactor where called
-    return (bindings[arg] || form_handlers[arg] || env[arg]);
+    return (bindings[arg] || env[arg]);
 }
 
 function list_arguments(arguments) {
@@ -182,7 +180,8 @@ function translate_if(cdr_if, env) {
     return expression;
 }
 				   
-function define(cdr_define, env) { // pass env to define???
+function define(cdr_define, env) {
+    // passed the cdr of the define s-expression and the environment
     var expression = '';
     var procedure_args;
     var procedure_expr;
@@ -207,7 +206,7 @@ function define(cdr_define, env) { // pass env to define???
 	expression += 'var ' + procedure_name + ' = ';
 	if (is_within_env(car(procedure_expr), env)) { // if car expression is in env, pass procedure to ast_to_js
 	    expression += ast_to_js(procedure_expr, env); 
-	} else { // otherwise it's a var
+	} else { // otherwise a var
 	    expression += car(procedure_expr);
 	}
 	add_binding_var(procedure_name, ast_to_js(procedure_expr, env), env); 
@@ -249,13 +248,6 @@ function translate_cons(cdr_cons) {
     }
 }
 
-// take from another module
-var form_handlers = {
-    define: define,
-    'if': translate_if,
-    cons: translate_cons // cons scheme to Javascript. cons() works on the AST but translate_cons is for returning scheme data
-};
-
 var bindings = {
     '+': generate_math_operator("+"),
     '-': generate_math_operator("-"),
@@ -268,7 +260,10 @@ var bindings = {
     '<=': generate_compare('<='),
     lambda: lambda,
     'BACKQUOTE': expand_vars,
-    'let': translate_let
+    'let': translate_let,
+    define: define,
+    'if': translate_if,
+    cons: translate_cons // cons scheme to Javascript. cons() works on the AST but translate_cons is for returning scheme data
 };
 
 function add_binding_procedure(name, binding) {
@@ -456,7 +451,6 @@ exports.cdr = cdr;
 exports.cons = cons;
 exports.ast_to_js = ast_to_js;
 exports.bindings = bindings;
-exports.form_handlers = form_handlers;
 exports.expand_vars = expand_vars;
 exports.schript = schript;
 
