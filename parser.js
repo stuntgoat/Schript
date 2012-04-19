@@ -39,35 +39,106 @@ function separate_sexps(tokens) {
 var parse_statement = function (tokens) {
     // given a list of tokens representing a single top-level expression, create an AST    
     // TODO: - handle null terminated lists and dotted pairs
-    //       - Quoting and escaping
+    //       - Quoting
+    //       - backquotes and escaping
+    //       - strings 
     var ast_stack = {};
     var stack_depth = 0;
     var i;
+    
+    var inside_backquote_sexp = false; // true when in a backquoted s-expression
+    var backquoted_depth = 0;
+    
+    var inside_escaped_sexp = false;
+    var escaped_depth = 0;
+    
+    var backquoted_var = false;
+    var escaped_var = false;
+
     for (i=0; i<tokens.length; i++) {
-        if (predicates.is_lparen(tokens[i])) { // entering new depth
+	if (predicates.is_backquote(tokens[i])) {
+	    // backquoted expression capture
+	    if (predicates.is_lparen(tokens[i+1])) {
+		inside_backquote_sexp = true;
+	    } else {
+		backquoted_var = true;
+	    }
+	    stack_depth += 1;
+	    backquoted_depth += 1;
+            ast_stack[stack_depth] = ['BACKQUOTE'];
+	    
+	} else if (predicates.is_lparen(tokens[i])) { // entering new depth
             if (stack_depth < 0) {
                 throw new Error('unbalanced paren within: ' + tokens);
             }
-            stack_depth += 1;
-            ast_stack[stack_depth] = [];
-        } else if (predicates.is_rparen(tokens[i])) { // leaving depth
-            if (predicates.is_dotted_pair(ast_stack[stack_depth])) { // dotted pair check 
-                // push dotted pair to stack
-                ast_stack[stack_depth - 1].push(ast_stack[stack_depth]); 
-                delete ast_stack[stack_depth];
-                stack_depth -= 1;
-            } else { // not a dotted pair 
-                if (stack_depth > 1) {
-                    ast_stack[stack_depth].push(null); // append null and push to previous stack                    
-                    ast_stack[stack_depth - 1].push(ast_stack[stack_depth]);                
+	    if (inside_backquote_sexp) {
+		backquoted_depth += 1;
+	    }
+	    stack_depth += 1;
+	    ast_stack[stack_depth] = [];
+	
+	} else if (predicates.is_rparen(tokens[i])) { // leaving depth
+	    if (stack_depth > 1) {
+		if (inside_backquote_sexp) {
+		    // final depth within backquoted expression
+		    if (backquoted_depth === 2) {
+			// end of backquoted s-expression
+			ast_stack[stack_depth].push(null); 
+			ast_stack[stack_depth - 1].push(ast_stack[stack_depth]);
+			delete ast_stack[stack_depth];
+			stack_depth -=1;
+			inside_backquote_sexp = false;
+			backquoted_depth = 0;
+			// add backquoted Array to the stack
+			ast_stack[stack_depth - 1].push(ast_stack[stack_depth]);
+			delete ast_stack[stack_depth];
+			stack_depth -=1;
+		    } else {
+			ast_stack[stack_depth - 1].push(ast_stack[stack_depth]);
+			delete ast_stack[stack_depth];
+			backquoted_depth -= 1;
+			stack_depth -= 1;
+		    }
+		} else if (predicates.is_dotted_pair(ast_stack[stack_depth])) { 
+                    // push dotted pair to stack
+                    ast_stack[stack_depth - 1].push(ast_stack[stack_depth]); 
                     delete ast_stack[stack_depth];
                     stack_depth -= 1;
-                } else { // this is the first depth and not a dotted pair
-                    ast_stack[stack_depth].push(null); // append null and push to previous stack                    
-                }
-            } 
+		} else {
+                    ast_stack[stack_depth].push(null);
+		    ast_stack[stack_depth - 1].push(ast_stack[stack_depth]);      
+		    delete ast_stack[stack_depth];
+		    stack_depth -= 1;
+		}
+		
+	    } else { // end of a s-expression
+                ast_stack[stack_depth].push(null);
+            }
         } else {
-            ast_stack[stack_depth].push(tokens[i]);
+	    // check for comma escaped expressions inside a backquote
+	    if (inside_backquote_sexp) {
+		if (predicates.is_comma(tokens[i])) {
+		    stack_depth += 1;
+		    backquoted_depth += 1;
+		    ast_stack[stack_depth] = ['COMMA'];
+		    if (predicates.is_lparen(tokens[i+1])) {
+			inside_escaped_sexp = true;
+		    } else {
+			escaped_var = true;
+		    }
+		} else if (escaped_var) { 
+		    ast_stack[stack_depth].push(tokens[i]); 
+		    ast_stack[stack_depth - 1].push(ast_stack[stack_depth]);
+		    delete ast_stack[stack_depth];
+                    stack_depth -= 1; 
+		    backquoted_depth -= 1; 
+		    escaped_var = false; 
+		} else { // inside backquote with a symbol
+		    ast_stack[stack_depth].push(tokens[i]);
+		} 
+	    } else {
+		ast_stack[stack_depth].push(tokens[i]);
+	    }
         }
     }
     return ast_stack[stack_depth];
@@ -78,29 +149,15 @@ function parse(tokens) {
     var ast_list = []; 
     var i; // counter 
     var separate_statements = separate_sexps(tokens); // separate statements in Arrays
-   // print(separate_statements);
     for (i=0; i<separate_statements.length; i++) {
         ast_list.push(parse_statement(separate_statements[i]));
     }
     return ast_list;
 };
 
-exports.parse_statement = parse; 
 exports.separate_sexps = separate_sexps;
 exports.parse = parse;
 
 ////////////////////////////////////////////////////////////////////////////////
-// var input = "(define (recurs x) (if (= x 0) x (+ x (recurs (- x 1)))))";
-// // var input = "(define (recurs x) (if (= x 0) x (+ x (recurs (- x 1)))))";
-// // // var input = "(define x 27)(define y 9)(+ x y)";
-
-// var input = "(define Y(lambda (f)((lambda (recur) (f (lambda arg (apply (recur recur) arg)))) (lambda (recur) (f (lambda arg (apply (recur recur) arg)))))))";
-// // var input = "((lambda (x) (* x x)) 2))";
-// // var input = "(lambda () (* 90 3))";
-// // var input = "(let ((x 2) (y 3))(* x y))";
-// var tokenized_all = tokenize(input);
-// var ast = parse(tokenized_all);
 
 
-//console.log(tokenized_all);
-//console.log(JSON.stringify(ast[0]));

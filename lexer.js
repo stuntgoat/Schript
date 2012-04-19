@@ -1,8 +1,8 @@
 // lexer.js
 // functions to tokenize a Scheme expression
 
-
-
+// debugging
+var print = console.log;
 
 function token_identity(token) {
     return token;
@@ -114,5 +114,6 @@ var tokenize = exports.tokenize = function tokenize(expression) {
                        });
     return tokens;
 };                             
+
 
 

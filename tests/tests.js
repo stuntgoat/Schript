@@ -5,7 +5,8 @@ var lexer = require("../lexer.js");
 var translate = require("../translate.js");
 var predicates = require("../predicates.js");
 var parser = require("../parser.js");
-
+// debug
+var print = console.log;
 
 suite('predicates.js', 
       function() {
@@ -85,6 +86,18 @@ suite('parser.js',
 	           var expected_output = [['let', [['y', 8, null], ['z', 7, null], null], ['*', 'y', 'z', null], ['+', 'y', 'z', null], null]]; 
 	           assert.deepEqual(expected_output, parser.parse(tokens));
 	       });
+
+          test('parse quasi quotes: defmacro; backquoted sexp, 2 escaped vars ', 
+               function (){
+		   var input = "(defmacro hammer (x) `(* ,x ,x 99999))";
+	           var expected_output = [["defmacro","hammer",["x",null],["BACKQUOTE",["*",["COMMA","x"],["COMMA","x"],99999,null]],null]];
+		   var parsed = lexer.tokenize(input);
+		   print(JSON.stringify(parser.parse(parsed)));
+	           assert.deepEqual(expected_output, parser.parse(parsed));
+	       });
+
+
+
 });
 
 
@@ -213,25 +226,8 @@ suite('translate.js',
 	           assert.deepEqual(expected_ouput, translate.expand_vars(input, LOCAL_ENV));
                    delete LOCAL_ENV;
 	       });
-
-	  // test('AST manipulation: backquoted s-expressions: single escaped variable', 
-          //      function () { 
-	  //          var input = ['define', 'a', ['COMMA', 'x'], null];
-	  //          var expected_ouput = ['define', 'a', 8, null];
-          //          var LOCAL_ENV = {
-          //              x: 8
-          //          };
-	  //          assert.deepEqual(expected_ouput, translate.expand_vars(input, LOCAL_ENV));
-          //          assert.deepEqual(LOCAL_ENV['a'], 8);
-          //          delete LOCAL_ENV;
-	  //      });
-
-          
-          
-
-
- 
- 	  test('AST to JS: procedure: backquoted s-expressions: escaped expression and escaped var', 
+           
+  	  test('AST to JS: procedure: backquoted s-expressions: escaped expression and escaped var', 
                function () {
 		   var input = ['if', ['<', ['COMMA', 'x'], ['COMMA', ['+', 'y', 3, null]], null], 1, 0, null];
 		   var expected_ouput = [ 'if', [ '<', 8, [ '+', 92, 3, null ], null ], 1, 0, null ];
