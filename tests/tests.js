@@ -92,10 +92,16 @@ suite('parser.js',
 		   var input = "(defmacro hammer (x) `(* ,x ,x 99999))";
 	           var expected_output = [["defmacro","hammer",["x",null],["BACKQUOTE",["*",["COMMA","x"],["COMMA","x"],99999,null]],null]];
 		   var parsed = lexer.tokenize(input);
-		   print(JSON.stringify(parser.parse(parsed)));
 	           assert.deepEqual(expected_output, parser.parse(parsed));
 	       });
 
+          test('parse quasi quotes: defmacro; escaped s-exp, escaped vars ', 
+               function (){
+		   var input = "(defmacro reverse_args (a b c) `(+ ,(c b a) ,b 99 ,a ))";
+		   var expected_output = [["defmacro","reverse_args",["a","b","c",null],["BACKQUOTE",["+",["COMMA",["c","b","a", null]],["COMMA","b"],99,["COMMA","a"],null]], null]];
+		   var parsed = lexer.tokenize(input);
+	           assert.deepEqual(expected_output, parser.parse(parsed));
+	       });
 
 
 });

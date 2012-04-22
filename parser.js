@@ -56,6 +56,15 @@ var parse_statement = function (tokens) {
     var escaped_var = false;
 
     for (i=0; i<tokens.length; i++) {
+	// print("inside backquote sexp?", inside_backquote_sexp);
+	// print("backquote depth", backquoted_depth);
+	// print("inside_escaped_sexp?", inside_escaped_sexp);
+	// print("escaped_depth", escaped_depth);
+	// print("backquoted_var?", backquoted_var);
+	// print("escaped_var?", escaped_var);
+	// print("stack_depth", stack_depth);
+	// print("token: ", tokens[i]);
+	// debugger;
 	if (predicates.is_backquote(tokens[i])) {
 	    // backquoted expression capture
 	    if (predicates.is_lparen(tokens[i+1])) {
@@ -73,6 +82,9 @@ var parse_statement = function (tokens) {
             }
 	    if (inside_backquote_sexp) {
 		backquoted_depth += 1;
+		if (inside_escaped_sexp) {
+		    escaped_depth += 1;
+		}
 	    }
 	    stack_depth += 1;
 	    ast_stack[stack_depth] = [];
@@ -81,7 +93,30 @@ var parse_statement = function (tokens) {
 	    if (stack_depth > 1) {
 		if (inside_backquote_sexp) {
 		    // final depth within backquoted expression
-		    if (backquoted_depth === 2) {
+		    if (inside_escaped_sexp) {
+			// if escape quote count is 2, 
+			if (escaped_depth === 2) {
+			    ast_stack[stack_depth].push(null); 
+			    ast_stack[stack_depth - 1].push(ast_stack[stack_depth]);
+			    delete ast_stack[stack_depth];
+			    stack_depth -=1;
+			    backquoted_depth -= 1;
+			    inside_escaped_sexp = false;
+			    escaped_depth = 0;
+			    // add backquoted Array to the stack
+			    ast_stack[stack_depth - 1].push(ast_stack[stack_depth]);
+			    delete ast_stack[stack_depth];
+			    stack_depth -=1;
+			    backquoted_depth -= 1;  
+			    continue;
+			} else {
+			    ast_stack[stack_depth - 1].push(ast_stack[stack_depth]);
+			    delete ast_stack[stack_depth];
+			    backquoted_depth -= 1;
+			    stack_depth -= 1;
+			    continue;
+			}
+		    } else if (backquoted_depth === 2) {
 			// end of backquoted s-expression
 			ast_stack[stack_depth].push(null); 
 			ast_stack[stack_depth - 1].push(ast_stack[stack_depth]);
@@ -126,6 +161,7 @@ var parse_statement = function (tokens) {
 		    } else {
 			escaped_var = true;
 		    }
+		    escaped_depth += 1;
 		} else if (escaped_var) { 
 		    ast_stack[stack_depth].push(tokens[i]); 
 		    ast_stack[stack_depth - 1].push(ast_stack[stack_depth]);
@@ -134,6 +170,10 @@ var parse_statement = function (tokens) {
 		    backquoted_depth -= 1; 
 		    escaped_var = false; 
 		} else { // inside backquote with a symbol
+		    if (inside_escaped_sexp) {
+			// check depth 
+			
+		    }
 		    ast_stack[stack_depth].push(tokens[i]);
 		} 
 	    } else {
@@ -159,5 +199,8 @@ exports.separate_sexps = separate_sexps;
 exports.parse = parse;
 
 ////////////////////////////////////////////////////////////////////////////////
-
+// var input = "(defmacro reverse_args (a b c) `(+ ,(c b a) ,b 99 ,a ))";
+// var tokens = tokenize(input);
+// print(input);
+// print(JSON.stringify(parse(tokens)[0]));
 
