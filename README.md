@@ -23,4 +23,4 @@ EXAMPLES:
 
 
 
-There are 35 tests, using Mocha and Chai, which are test and assertion libraries, respectively.
+There are 37 tests, using Mocha and Chai, which are test and assertion libraries, respectively.
