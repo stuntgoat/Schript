@@ -288,7 +288,7 @@ suite('translate.js',
 	  test('Scheme to JS: defining multi-argument function and calling it.', 
                function () {
 	           var input = "(define (addall x y z) (+ x y z))(addall 1 2 3)";
-	           var expected_output = "var addall = function (x, y, z) {return (x+y+z);};\naddall(1, 2, 3);\n";
+	           var expected_output = "var addall = function (x, y, z) {return (x+y+z);};\naddall(1,2,3);\n";
                    var LOCAL_ENV = {};
                    var output = translate.schript(input, LOCAL_ENV);
 	           assert.deepEqual(output, expected_output);
@@ -358,7 +358,7 @@ suite('translate.js',
 	  test('Scheme to JS: let procedure', 
                function () {
                    var input =  "(let ((y 8)(z 7)) (* y z) (+ y z))";
-	           var expected_output = "function() {var y = 8;var z = 7;(y*z);return (y+z);\n";
+	           var expected_output = "function() {var y = 8;var z = 7;(y*z);return (y+z);}();\n";
                    var output = translate.schript(input, {});
 	           assert.deepEqual(expected_output, output);
 	       });

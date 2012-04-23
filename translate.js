@@ -51,7 +51,7 @@ function ast_to_js(sexp, env) {
     var i; // for loop counter
     var tmp_js = []; // placeholder for evaluated JS
 
-//    debugger;
+    debugger;
     if (predicates.is_array(sexp)) {
 	if (bindings[car(sexp)]) {
 
@@ -115,11 +115,12 @@ function translate_let(lexp, env) {
     // evaluate expression
     for (i=0; i<expression_list.length - 1; i++) {
         if (i === (expression_list.length - 2)) {
-            let_expression += "return " + ast_to_js(expression_list[i], env) + ";";
+            let_expression += "return " + ast_to_js(expression_list[i], env) + ";}();";
         } else {
             let_expression += ast_to_js(expression_list[i], env) + ";";
         }
     }
+
     return let_expression;
 }
 
@@ -164,7 +165,9 @@ function list_arguments() {
 	arg_list.pop();// remove null 
         if (arg_list.length === 1) {
             return arg_list[0];
+
         } else {
+
 	    args_with_commas = arg_list.join(', ');
         }
     }
@@ -288,12 +291,17 @@ function local_procedure(name) {
     return function(args, env) {
         // TODO: ast_to_js over each args???
 	var function_call = '';
-	var i = 0;
+	var i = 0; // counter 
+        var argument_stack = [];
 	function_call += name;
 	function_call += '(';
-
-        function_call += list_arguments(args);
-
+        // check if an argument in an expression
+        for (var j = 0; j < args.length; j++) {
+            if (args[j] != null) {
+                argument_stack.push(ast_to_js(args[j], env));
+            }
+        }
+        function_call += argument_stack.join(',');
         function_call += ');';
 
 	// function_call += '(';
@@ -468,8 +476,5 @@ exports.ast_to_js = ast_to_js;
 
 ////////////////////////////////////////////////////////////////////////////////
 
-var input = "(define (addall x y z) (+ x y z))(addall 1 2 3)";
-// var input = "(define a (* 88 3))";
-// var expected_ouput = "var a = (88*3);";
-// print(expected_ouput);
-print(schript(input));
+// var input = "(define (addall x y z) (+ x y z))(addall 1 2 3)";
+// print(schript(input));
