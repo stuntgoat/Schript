@@ -190,78 +190,78 @@ suite('translate.js',
           test('AST to JS: procedure: cons: string to list', 
                function (){
 		   var input = ['cons', '\"hammer\"', ['QUOTE', [0, 4, null]], null];
-		   var expected_ouput = '["hammer",0,4,null]';
-	           assert.deepEqual(expected_ouput, translate.ast_to_js(input));
+		   var expected_output = '["hammer",0,4,null]';
+	           assert.deepEqual(expected_output, translate.ast_to_js(input));
 	       });
 
 	  test('AST to JS: procedure: cons: quoted symbol to list', 
                function (){
 		   var input = ['cons', 'hammer', ['QUOTE', [0, 4, null]], null];
-		   var expected_ouput = '[hammer,0,4,null]';
-	           assert.deepEqual(expected_ouput, translate.ast_to_js(input));
+		   var expected_output = '[hammer,0,4,null]';
+	           assert.deepEqual(expected_output, translate.ast_to_js(input));
 	       });
 
 	  test('AST to JS: procedure: cons: quoted list to quoted list', 
                function () {
 		   var input = ['cons', ['QUOTE', ['list', 8, 9, null]], ['QUOTE', [0, 4, null]], null];
-		   var expected_ouput = '[[list,8,9,null],0,4,null]';
-	           assert.deepEqual(expected_ouput, translate.ast_to_js(input));
+		   var expected_output = '[[list,8,9,null],0,4,null]';
+	           assert.deepEqual(expected_output, translate.ast_to_js(input));
 	       });
 
 	  test('AST to JS: procedure: cons: evaled list to quoted list', 
                function () {
 		   var input = ['cons', ['cons', 8, ['QUOTE',[9, null]]], ['QUOTE', [0, 4, null]], null];
-		   var expected_ouput = '[[8,9,null],0,4,null]';
-	           assert.deepEqual(expected_ouput, translate.ast_to_js(input, null));
+		   var expected_output = '[[8,9,null],0,4,null]';
+	           assert.deepEqual(expected_output, translate.ast_to_js(input, null));
 	       });
 
 	  test('AST to JS: procedure: cons: dotted pair to list', 
                function () {
 		   var input = ['cons', ['QUOTE', [8, 9]], ['QUOTE', [4, null]], null];
-		   var expected_ouput = '[[8,9],4,null]';
-	           assert.deepEqual(expected_ouput, translate.ast_to_js(input, null));
+		   var expected_output = '[[8,9],4,null]';
+	           assert.deepEqual(expected_output, translate.ast_to_js(input, null));
 	       });
 
 	  test('AST manipulation: backquoted s-expressions: single escaped variable', 
                function () { 
 		   var input = ['define', 'a', ['COMMA', 'x'], null];
-		   var expected_ouput = ['define', 'a', 8, null];
+		   var expected_output = ['define', 'a', 8, null];
                    var LOCAL_ENV = {
                        x: 8
                    };
-	           assert.deepEqual(expected_ouput, translate.expand_vars(input, LOCAL_ENV));
+	           assert.deepEqual(expected_output, translate.expand_vars(input, LOCAL_ENV));
                    delete LOCAL_ENV;
 	       });
            
   	  test('AST to JS: procedure: backquoted s-expressions: escaped expression and escaped var', 
                function () {
 		   var input = ['if', ['<', ['COMMA', 'x'], ['COMMA', ['+', 'y', 3, null]], null], 1, 0, null];
-		   var expected_ouput = [ 'if', [ '<', 8, [ '+', 92, 3, null ], null ], 1, 0, null ];
+		   var expected_output = [ 'if', [ '<', 8, [ '+', 92, 3, null ], null ], 1, 0, null ];
                    var LOCAL_ENV = {
                        x:8,
                        y:92
                    };
-	           assert.deepEqual(expected_ouput, translate.expand_vars(input, LOCAL_ENV)); 
+	           assert.deepEqual(expected_output, translate.expand_vars(input, LOCAL_ENV)); 
                    delete LOCAL_ENV;
 	       });
  
 	  test('Scheme to JS: simple arithmetic', 
                function () {
 		   var input = "(+ 6 77)";
-		   var expected_ouput = "(6+77)\n";
+		   var expected_output = "(6+77)\n";
                    var LOCAL_ENV = {};
                    var output = translate.schript(input, LOCAL_ENV);
-	           assert.deepEqual(output, expected_ouput);
+	           assert.deepEqual(output, expected_output);
                    delete LOCAL_ENV;
 	       });
 
 	  test('Scheme to JS: nested arithmetic', 
                function () {
 		   var input = "(+ 6 77(- 27 9 11))";
-		   var expected_ouput = "(6+77+(27-9-11))\n";
+		   var expected_output = "(6+77+(27-9-11))\n";
                    var LOCAL_ENV = {};
                    var output = translate.schript(input, LOCAL_ENV);
-	           assert.deepEqual(expected_ouput, output);
+	           assert.deepEqual(expected_output, output);
                    delete LOCAL_ENV;
 	       });
 
@@ -269,20 +269,38 @@ suite('translate.js',
                function () {
 
 	           var input = "(define (s y) (* y y))(define e 39999)(* (s 8) e)";
-	           var expected_ouput = "var s = function (y) {return (y*y);};\nvar e = 39999;\n(s(8);*e)\n";
+	           var expected_output = "var s = function (y) {return (y*y);};\nvar e = 39999;\n(s(8);*e)\n";
                    var LOCAL_ENV = {};
                    var output = translate.schript(input, LOCAL_ENV);
-	           assert.deepEqual(expected_ouput, output);
+	           assert.deepEqual(expected_output, output);
                    delete LOCAL_ENV;
+	       });
+
+	  test('Scheme to JS: defining a variable to an expression', 
+               function () {
+	           var input = "(define a (* 9 8))";
+	           var expected_output = "var a = (9*8);\n";
+                   var LOCAL_ENV = {};
+                   var output = translate.schript(input, LOCAL_ENV);
+	           assert.deepEqual(output, expected_output);
+	       });
+
+	  test('Scheme to JS: defining multi-argument function and calling it.', 
+               function () {
+	           var input = "(define (addall x y z) (+ x y z))(addall 1 2 3)";
+	           var expected_output = "var addall = function (x, y, z) {return (x+y+z);};\naddall(1, 2, 3);\n";
+                   var LOCAL_ENV = {};
+                   var output = translate.schript(input, LOCAL_ENV);
+	           assert.deepEqual(output, expected_output);
 	       });
 
 	  test('Scheme to JS: multiple statements', 
                function () {
 	           var input = "(define x 27)(define y 9)(+ x y)";
-	           var expected_ouput = "var x = 27;\nvar y = 9;\n(x+y)\n";
+	           var expected_output = "var x = 27;\nvar y = 9;\n(x+y)\n";
                    var LOCAL_ENV = {};
                    var output = translate.schript(input, LOCAL_ENV);
-	           assert.deepEqual(expected_ouput, output);
+	           assert.deepEqual(expected_output, output);
                    delete LOCAL_ENV;
 	       });
 
@@ -290,59 +308,59 @@ suite('translate.js',
 	  test('Scheme to JS: recursive function definition', 
                function () {
                    var input = "(define (recurs x) (if (= x 0) x (+ x (recurs (- x 1)))))";
-	           var expected_ouput = "var recurs = function (x) {return function () { if ((x === 0)) { return x; } else { return (x+recurs((x-1))); }}();};\n";
+	           var expected_output = "var recurs = function (x) {return function () { if ((x === 0)) { return x; } else { return (x+recurs((x-1))); }}();};\n";
                    var output = translate.schript(input, {});
-	           assert.deepEqual(expected_ouput, output);
+	           assert.deepEqual(expected_output, output);
                    delete LOCAL_ENV;
 	       });
 
 	  test('Scheme to JS: iterive function definition', 
                function () {
                    var input = "(define (fact n total) (if (= n 0) total (fact (- n 1) (* n total))))";
-	           var expected_ouput = "var fact = function (n, total) {return function () { if ((n === 0)) { return total; } else { return fact((n-1),(n*total)); }}();};\n";
+	           var expected_output = "var fact = function (n, total) {return function () { if ((n === 0)) { return total; } else { return fact((n-1),(n*total)); }}();};\n";
                    var output = translate.schript(input, {});
-	           assert.deepEqual(expected_ouput, output);
+	           assert.deepEqual(expected_output, output);
                    delete LOCAL_ENV;
 	       });
 
 	  test('Scheme to JS: lambda zero args', 
                function () {
                    var input = "(lambda () (* 90 3))";
-	           var expected_ouput = "function(){ return (90*3)};\n";
+	           var expected_output = "function(){ return (90*3)};\n";
                    var output = translate.schript(input, {});
-	           assert.deepEqual(expected_ouput, output);
+	           assert.deepEqual(expected_output, output);
 	       });
 
 	  test('Scheme to JS: lambda one arg', 
                function () {
                    var input = "((lambda (x) (* x x)) 2))";
-	           var expected_ouput = "function(x){ return (x*x)}(2);\n";
+	           var expected_output = "function(x){ return (x*x)}(2);\n";
                    var output = translate.schript(input, {});
-	           assert.deepEqual(expected_ouput, output);
+	           assert.deepEqual(expected_output, output);
 	       });
 
 	  test('Scheme to JS: lambda 3 args not called with any arguments', 
                function () {
                    var input = "((lambda (x y z) (* x (+ y (- z 100)))))";
-	           var expected_ouput = "function(x, y, z){ return (x*(y+(z-100)))};\n";
+	           var expected_output = "function(x, y, z){ return (x*(y+(z-100)))};\n";
                    var output = translate.schript(input, {});
-	           assert.deepEqual(expected_ouput, output);
+	           assert.deepEqual(expected_output, output);
 	       });
 
 	  test('Scheme to JS: lambda 3 args: call with 3 values', 
                function () {
                    var input = "((lambda (x y z) (* x y (* x z))) 2 3 4)";
-	           var expected_ouput = "function(x, y, z){ return (x*y*(x*z))}(2, 3, 4);\n";
+	           var expected_output = "function(x, y, z){ return (x*y*(x*z))}(2, 3, 4);\n";
                    var output = translate.schript(input, {});
-	           assert.deepEqual(expected_ouput, output);
+	           assert.deepEqual(expected_output, output);
 	       });
 
 	  test('Scheme to JS: let procedure', 
                function () {
                    var input =  "(let ((y 8)(z 7)) (* y z) (+ y z))";
-	           var expected_ouput = "function() {var y = 8;var z = 7;(y*z);return (y+z);\n";
+	           var expected_output = "function() {var y = 8;var z = 7;(y*z);return (y+z);\n";
                    var output = translate.schript(input, {});
-	           assert.deepEqual(expected_ouput, output);
+	           assert.deepEqual(expected_output, output);
 	       });
 
       });

@@ -50,14 +50,16 @@ function ast_to_js(sexp, env) {
     //       - if an atom or a sexp is quoted ['QUOTE', 9] <= '9 and ['QUOTE', [9, 4, null]] <= '(9 4)
     var i; // for loop counter
     var tmp_js = []; // placeholder for evaluated JS
-    print(sexp);
-    debugger;
+
+//    debugger;
     if (predicates.is_array(sexp)) {
 	if (bindings[car(sexp)]) {
+
 	    return bindings[car(sexp)](cdr(sexp), env); // Added env to bindings in generate math_operator
 	} else if (((sexp.length === 2)) && (sexp[1] === null)) { // a list of one value, not in bindings
 	    return ast_to_js(car(sexp), env);
 	} else if (env.hasOwnProperty(car(sexp))) {
+
             // if this is an expression and car(sexp) is in env, pass as a procedure
             if (env[car(sexp)] === "tmp") { // function calling itself
                 // multiple arguments to function calling itself recursively
@@ -75,7 +77,7 @@ function ast_to_js(sexp, env) {
                 return car(sexp) + "(" + ast_to_js(car(cdr(sexp)), env) + ")";
 
             } else {
-                print("FUNCTION ARGS", cdr(sexp));
+
                 return env[car(sexp)](cdr(sexp), env); // NEEDS TESTS!!!
             }
         } else if (bindings.hasOwnProperty(car(car(sexp)))) { // probably a lambda with arguments
@@ -157,7 +159,7 @@ function list_arguments() {
     // given an ast, output the values joined with ','. exluding null, which should be
     // the last element of the ast.
     var args_with_commas;
-    arg_list = arguments[0];
+    var arg_list = arguments[0];
     if (arg_list[(arg_list.length - 1)] === null) {
 	arg_list.pop();// remove null 
         if (arg_list.length === 1) {
@@ -188,6 +190,7 @@ function define(cdr_define, env) {
     // variable and expression/value or (function arguments) expression
     if (predicates.is_array(car(cdr_define))) {
 	// we are defining a procedure that takes args
+
 	procedure_name = car(car(cdr_define));
 	procedure_args = cdr(car(cdr_define));
 	procedure_expr = car(cdr(cdr_define));
@@ -199,15 +202,22 @@ function define(cdr_define, env) {
 	add_binding_procedure(procedure_name, env); 
 	return expression + ';';
     } else if (predicates.is_string(car(cdr_define))) {
+
+
 	// we are defining something that accepts zero arguments
+
+        
 	procedure_name = car((cdr_define));
 	procedure_expr = cdr(cdr_define);
 	expression += 'var ' + procedure_name + ' = ';
-	if (is_within_env(car(procedure_expr), env)) { // if car expression is in env, pass procedure to ast_to_js
-	    expression += ast_to_js(procedure_expr, env); 
+	if (is_within_env(car(car(procedure_expr)), env)) { // if car expression is in env, pass procedure to ast_to_js
+
+	    expression += ast_to_js(car(procedure_expr), env);
 	} else { // otherwise a var
+
 	    expression += car(procedure_expr);
 	}
+
 	add_binding_var(procedure_name, ast_to_js(procedure_expr, env), env); 
 	return expression + ';';
     }
@@ -281,7 +291,7 @@ function local_procedure(name) {
 	var i = 0;
 	function_call += name;
 	function_call += '(';
-        print("args in local_procedure: ", args);
+
         function_call += list_arguments(args);
 
         function_call += ');';
@@ -320,12 +330,15 @@ function generate_math_operator(op) {
 		break;
 	    } // not at last arg
 	    // support variables that are dynamically loaded into `bindings`
+
 	    if (env[tmp]) { // not working
-		statement += (op + tmp);		
+		statement += (op + tmp);
+
 	    } else { // a number
 		statement += (op + tmp);		
 	    }
 	}
+
 	return '(' + statement + ')';
     };
 }
@@ -449,5 +462,14 @@ function schript(text) {
     return JS;
 }
 
+exports.schript = schript;
+exports.expand_vars = expand_vars;
+exports.ast_to_js = ast_to_js;
 
+////////////////////////////////////////////////////////////////////////////////
 
+var input = "(define (addall x y z) (+ x y z))(addall 1 2 3)";
+// var input = "(define a (* 88 3))";
+// var expected_ouput = "var a = (88*3);";
+// print(expected_ouput);
+print(schript(input));

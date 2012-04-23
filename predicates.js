@@ -3,6 +3,23 @@
 var tester = Object.prototype.toString;
 
 
+function has_matching_paren(text){
+    // accepts a string and determines if there are equal # of 
+    // matching parens
+    var i; // counter
+    var tokens = tokenize(text);
+    var left_paren = 0; // counters for paren
+    var right_paren = 0; // counters for paren
+    for (i=0; i < tokens.length; i++) {
+        if (is_lparen(tokens[i])) {
+            left_paren += 1;
+        } else if (is_rparen(tokens[i])) {
+            right_paren += 1;
+        }
+    }
+    return (left_paren.length === right_paren.length);
+}
+
 function is_dotted_pair(AST) {
     return((AST.length == 3) && (AST[1] === "."));
 }

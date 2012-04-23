@@ -1,8 +1,6 @@
 textarea#scheme-input {
 
     float: left;
-
-
     resize: none;
     overflow: auto;
     outline: none;
