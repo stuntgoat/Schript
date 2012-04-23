@@ -1,0 +1,41 @@
+textarea#scheme-input {
+
+    float: left;
+
+
+    resize: none;
+    overflow: auto;
+    outline: none;
+    width: 600px;
+    height: 300px;
+    border: 3px solid #cccccc;
+    padding: 5px;
+    font-family: Courier;
+    font-size: 20px;
+}
+
+input#translate-button {
+    float: left;
+    clear: left;
+
+}
+
+
+textarea#js-output {
+
+    float: right;
+    clear: right;
+    position: absolute;
+    margin-left: 40px;
+    resize: none;
+    overflow: auto;
+    outline: none;
+
+    width: 600px;
+    height: 300px;
+    border: 3px solid #cccccc;
+    padding: 5px;
+    font-family: Courier;
+    font-size: 20px;
+    
+}
