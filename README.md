@@ -1,7 +1,10 @@
 
 **Schript is a Scheme to JavaScript translator.**
 
+
+
 Schript is written in JavaScript using Node.js.
+
 
 
 EXAMPLES:
@@ -13,7 +16,7 @@ EXAMPLES:
     (x+y)
   
 
-    > var input = "(define (recurs x) (if (= x 0) x (+ x (recurs (- x 1)))))";
+    > var input = "(define (recurse x) (if (= x 0) x (+ x (recurse (- x 1)))))";
     > console.log(schript(input));
     var recurse = function (x) {return function () { if ((x === 0)) { return x; } else { return (x+recurse(x-1)); }}();};
 
@@ -23,4 +26,7 @@ EXAMPLES:
 
 
 
-There are 37 tests, using Mocha and Chai, which are test and assertion libraries, respectively.
+There are 40 tests, using Mocha and Chai, which are test and assertion libraries, respectively.
+
+***website coming soon!***
+[www.schript.org](http://www.schript.org)
